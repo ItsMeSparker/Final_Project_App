@@ -1,5 +1,5 @@
 import React, {useState} from 'react'
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert, ImageBackground } from 'react-native'
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert, ImageBackground, Image } from 'react-native'
 import { Stack, useRouter } from 'expo-router'
 
 import { COLORS, icons, images, SIZES , wallpaper} from '../constants'
@@ -10,39 +10,60 @@ const Home = () => {
     const onPress = () => setCount(prevCount => prevCount + 1);
     const router = useRouter();
     const QuickScan = () => Alert.alert("QuickScan")
+    const background = require('../assets/images/Background_1.png');
+    const Red_Button = require('../assets/images/Red_Button.png');
+    const Orange_Button = require('../assets/images/Orange_Button.png');
+    const Blue_Button = require('../assets/images/Blue_Button.png');
+    const Purple_Button = require('../assets/images/Purple_Button.png');
+    const Rabbit = require('../assets/images/Bunny_Logo.png');
 
     return (
+        <>
+        <Stack.Screen options={{ headerShown: false }} />
         <SafeAreaView style={{flex:1, backgroundColor: "#ADD8E6"}}>
-        <Stack.Screen
-            options={{
-                headerStyle: { backgroundColor: COLORS.lightWhite},
-                headerLeft: () => (
-                    <ScreenHeaderBtn iconUrl={images.profile} dimension="100" />
-                ),
-                headerTitle: ""
-            }}
-        
-        />
-            <Text style={[styles_head.text, { marginBottom: 40, marginTop: 50}]}>Skin Cancer Detector</Text>
-            
-            <View style={styles_normal.container}>
-                <TouchableOpacity style={styles_normal.button} onPress={() => router.push('/Camera_B')}>
-                    <Text style={styles_normal.text}>Quick Scan</Text>
+        <ImageBackground source={background} resizeMode="cover" style={{flex:1, width: '100%', alignItems: 'center', justifyContent: 'flex-start', paddingTop: 80}}>
+            <Image source={Rabbit} resizeMode='contain' style={{width: 100, height: 100 }}/>
+            <Text style={[styles_head.text, { marginBottom: 20, marginTop: 15}]}>Rabbit Lens</Text>
+            <View style={styles_normal.container}>                
+                <TouchableOpacity onPress={() => router.push('/Report')}>
+                    <View style={{position: 'relative', width: 300, height: 90, justifyContent: 'center', marginVertical: 5}}>
+                        <Image source={Red_Button} resizeMode='contain' style={{width: '100%', height: '100%' }}/>
+                        <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center'}}>
+                            <Text style={styles_normal.text}>Quick Scan</Text>
+                        </View>
+                    </View>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles_normal.button} onPress={onPress}>
-                    <Text style={styles_normal.text}>Weekly Report</Text>
+                <TouchableOpacity  onPress={onPress}>
+                    <View style={{position: 'relative', width: 300, height: 90, justifyContent: 'center', marginVertical: 5}}>
+                        <Image source={Orange_Button} resizeMode='contain' style={{width: '100%', height: '100%' }}/>
+                        <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center'}}>
+                            <Text style={styles_normal.text}>Weekly Report</Text>
+                        </View>
+                    </View>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles_normal.button} onPress={() => router.push('/Information')}>
-                    <Text style={styles_normal.text}>Information</Text>
+                <TouchableOpacity  onPress={() => router.push('/Information')}>
+                    <View style={{position: 'relative', width: 300, height: 90, justifyContent: 'center', marginVertical: 5}}>
+                        <Image source={Purple_Button} resizeMode='contain' style={{width: '100%', height: '100%' }}/>
+                        <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center'}}>
+                            <Text style={styles_normal.text}>Information</Text>
+                        </View>
+                    </View>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles_normal.button} onPress={onPress}>
-                    <Text style={styles_normal.text}>Setting</Text>
+                <TouchableOpacity onPress={onPress}>
+                    <View style={{position: 'relative', width: 300, height: 90, justifyContent: 'center', marginVertical: 5}}>
+                        <Image source={Blue_Button} resizeMode='contain' style={{width: '100%', height: '100%'}}/>
+                        <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center'}}>
+                            <Text style={styles_normal.text}>Settings</Text>
+                        </View>
+                    </View>
                 </TouchableOpacity>
             </View>
+            </ImageBackground>
         </SafeAreaView>
+        </>
     )
 }
 
@@ -62,14 +83,15 @@ const styles_head = StyleSheet.create({
 
 const styles_normal = StyleSheet.create({
     container:{
-        flex:1,
-        justifyContent: 'space-between',
+        justifyContent: 'flex-start',
         alignItems: 'center',
+        width: '100%',
         padding: 10,
-        margin: 5,
+        marginTop: 10,
+        marginBottom: 10,
     },
     text: {
-        fontSize: 40,
+        fontSize: 10,
         fontWeight: '400',
         textAlign: 'center',
     },
