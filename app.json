@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "scheme": "acme",
+    "name": "NSC-Prototype",
+    "slug": "NSC-Prototype",
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "$(PRODUCT_NAME) needs access to your Camera for skin analysis."
+        }
+      ],
+      "expo-font"
+    ],
+    "android": {
+      "permissions": [
+        "android.permission.CAMERA"
+      ],
+      "package": "com.anonymous.NSCPrototype"
+    },
+    "ios": {
+      "infoPlist": {
+        "NSCameraUsageDescription": "$(PRODUCT_NAME) needs access to your Camera."
+      },
+      "bundleIdentifier": "com.anonymous.NSCPrototype"
+    }
+  }
+}
