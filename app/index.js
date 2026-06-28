@@ -1,27 +1,33 @@
 import React, {useState} from 'react'
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert, ImageBackground, Image } from 'react-native'
 import { Stack, useRouter } from 'expo-router'
-
+import { StatusBar } from 'expo-status-bar';
 import { COLORS, icons, images, SIZES , wallpaper} from '../constants'
 import { ScreenHeaderBtn } from '../components'
+
+const background = require('../assets/images/Background_1.png');
+const Red_Button = require('../assets/images/Red_Button.png');
+const Orange_Button = require('../assets/images/Orange_Button.png');
+const Blue_Button = require('../assets/images/Blue_Button.png');
+const Purple_Button = require('../assets/images/Purple_Button.png');
+const Rabbit = require('../assets/images/Bunny_Logo.png');
 
 const Home = () => {
     const [count, setCount] = useState(0);
     const onPress = () => setCount(prevCount => prevCount + 1);
     const router = useRouter();
     const QuickScan = () => Alert.alert("QuickScan")
-    const background = require('../assets/images/Background_1.png');
-    const Red_Button = require('../assets/images/Red_Button.png');
-    const Orange_Button = require('../assets/images/Orange_Button.png');
-    const Blue_Button = require('../assets/images/Blue_Button.png');
-    const Purple_Button = require('../assets/images/Purple_Button.png');
-    const Rabbit = require('../assets/images/Bunny_Logo.png');
 
     return (
-        <>
-        <Stack.Screen options={{ headerShown: false }} />
-        <SafeAreaView style={{flex:1, backgroundColor: "#ADD8E6"}}>
         <ImageBackground source={background} resizeMode="cover" style={{flex:1, width: '100%', alignItems: 'center', justifyContent: 'flex-start', paddingTop: 80}}>
+            <Stack.Screen
+                        options={{
+                            headerStyle: { backgroundColor: 'transparent' },
+                            headerTransparent: true,
+                            headerTitle: "",
+                            headerTintColor: '#fff'
+                        }}
+            />
             <Image source={Rabbit} resizeMode='contain' style={{width: 100, height: 100 }}/>
             <Text style={[styles_head.text, { marginBottom: 20, marginTop: 15}]}>Rabbit Lens</Text>
             <View style={styles_normal.container}>                
@@ -62,8 +68,6 @@ const Home = () => {
                 </TouchableOpacity>
             </View>
             </ImageBackground>
-        </SafeAreaView>
-        </>
     )
 }
 
