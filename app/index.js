@@ -26,8 +26,8 @@ const Home = () => {
             <Text style={[styles_head.text, { marginBottom: 20, marginTop: 15}]}>Rabbit Lens</Text>
             <View style={styles_normal.container}>                
                 <TouchableOpacity onPress={() => router.push('/Report')}>
-                    <View style={{position: 'relative', width: 300, height: 90, justifyContent: 'center', marginVertical: 5}}>
-                        <Image source={Red_Button} resizeMode='contain' style={{width: '100%', height: '100%' }}/>
+                    <View style={{position: 'relative', width: 300, height: 90, justifyContent: 'center', alignItems: 'center', marginVertical: 5}}>
+                        <Image source={Red_Button} resizeMode='contain' style={{width: '165px'}}/>
                         <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center'}}>
                             <Text style={styles_normal.text}>Quick Scan</Text>
                         </View>
@@ -35,8 +35,8 @@ const Home = () => {
                 </TouchableOpacity>
 
                 <TouchableOpacity  onPress={onPress}>
-                    <View style={{position: 'relative', width: 300, height: 90, justifyContent: 'center', marginVertical: 5}}>
-                        <Image source={Orange_Button} resizeMode='contain' style={{width: '100%', height: '100%' }}/>
+                    <View style={{position: 'relative', width: 300, height: 90, justifyContent: 'center', alignItems: 'center', marginVertical: 5}}>
+                        <Image source={Orange_Button} resizeMode='contain' style={{width: '165px'}}/>
                         <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center'}}>
                             <Text style={styles_normal.text}>Weekly Report</Text>
                         </View>
@@ -44,8 +44,8 @@ const Home = () => {
                 </TouchableOpacity>
 
                 <TouchableOpacity  onPress={() => router.push('/Information')}>
-                    <View style={{position: 'relative', width: 300, height: 90, justifyContent: 'center', marginVertical: 5}}>
-                        <Image source={Purple_Button} resizeMode='contain' style={{width: '100%', height: '100%' }}/>
+                    <View style={{position: 'relative', width: 300, height: 90, justifyContent: 'center', alignItems: 'center', marginVertical: 5}}>
+                        <Image source={Purple_Button} resizeMode='contain' style={{width: '165px'}}/>
                         <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center'}}>
                             <Text style={styles_normal.text}>Information</Text>
                         </View>
@@ -53,8 +53,8 @@ const Home = () => {
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={onPress}>
-                    <View style={{position: 'relative', width: 300, height: 90, justifyContent: 'center', marginVertical: 5}}>
-                        <Image source={Blue_Button} resizeMode='contain' style={{width: '100%', height: '100%'}}/>
+                    <View style={{position: 'relative', width: 300, height: 90, justifyContent: 'center', alignItems: 'center', marginVertical: 5}}>
+                        <Image source={Blue_Button} resizeMode='contain' style={{width: '165px'}}/>
                         <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center'}}>
                             <Text style={styles_normal.text}>Settings</Text>
                         </View>
@@ -91,23 +91,11 @@ const styles_normal = StyleSheet.create({
         marginBottom: 10,
     },
     text: {
-        fontSize: 10,
-        fontWeight: '400',
+        fontSize: 22, // EDITED: Increased from 10 to 22 so it is actually readable
+        fontWeight: 'bold', // EDITED: Changed from '400' to 'bold' to stand out against the pixel background
         textAlign: 'center',
     },
-    button: {
-        width: 90 * 4,
-        height: 90,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#F5E6A9',
-        margin: 20,
 
-        borderTopLeftRadius: 40,
-        borderTopRightRadius: 40,
-        borderBottomLeftRadius: 40,
-        borderBottomRightRadius: 40,
-    },
     })
 
     Home.id = 'HomeScreen';
