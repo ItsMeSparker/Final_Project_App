@@ -1,7 +1,8 @@
-import React, {useState} from 'react'
+import React, {useState, useContext} from 'react'
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert, ImageBackground, Image } from 'react-native'
 import { Stack, useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar';
+import { AuthContext } from '../context/AuthContext';
 import { COLORS, icons, images, SIZES , wallpaper} from '../constants'
 import { ScreenHeaderBtn } from '../components'
 
@@ -16,6 +17,7 @@ const Home = () => {
     const [count, setCount] = useState(0);
     const onPress = () => setCount(prevCount => prevCount + 1);
     const router = useRouter();
+    const { logout } = useContext(AuthContext);
     const QuickScan = () => Alert.alert("QuickScan")
 
     return (
@@ -25,7 +27,12 @@ const Home = () => {
                             headerStyle: { backgroundColor: 'transparent' },
                             headerTransparent: true,
                             headerTitle: "",
-                            headerTintColor: '#fff'
+                            headerTintColor: '#fff',
+                            headerRight: () => (
+                                <TouchableOpacity onPress={logout} style={{ marginRight: 15 }}>
+                                    <Text style={{ color: 'red', fontWeight: 'bold' }}>Logout</Text>
+                                </TouchableOpacity>
+                            )
                         }}
             />
             <Image source={Rabbit} resizeMode='contain' style={{width: 100, height: 100 }}/>
