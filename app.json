@@ -11,7 +11,10 @@
           "cameraPermission": "$(PRODUCT_NAME) needs access to your Camera for skin analysis."
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-secure-store",
+      "expo-splash-screen",
+      "expo-status-bar"
     ],
     "android": {
       "permissions": [

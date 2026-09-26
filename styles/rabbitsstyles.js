@@ -1,0 +1,24 @@
+import { StyleSheet } from 'react-native';
+export const rabbitsStyles = StyleSheet.create({
+    background: { flex: 1, width: '100%', paddingTop: 100 },
+    list: { padding: 20 },
+    card: {
+        backgroundColor: 'rgba(255,255,255,0.92)',
+        borderRadius: 15,
+        padding: 18,
+        marginBottom: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    cardTitle: { fontSize: 18, fontWeight: 'bold', color: '#333' },
+    cardSubtitle: { fontSize: 13, color: '#888', marginTop: 2 },
+    addButton: { padding: 5, borderRadius: 5, backgroundColor: 'rgba(255,255,255,0.2)' },
+    emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+    emptyText: { color: '#fff', fontSize: 22, fontWeight: 'bold', marginTop: 15 },
+    emptySubText: { color: 'rgba(255,255,255,0.7)', fontSize: 14, marginTop: 8 },
+});

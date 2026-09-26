@@ -1,7 +1,6 @@
 import React, {useState} from 'react'
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert, ScrollView, Image, ImageBackground} from 'react-native'
 import { Stack, useRouter } from 'expo-router'
-//import {} from 'react-native-executorch'
 import { COLORS, icons, images, SIZES , wallpaper} from '../constants'
 import { ScreenHeaderBtn } from '../components'
 import { Dimensions } from 'react-native';

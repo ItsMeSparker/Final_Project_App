@@ -7,7 +7,7 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [token, setToken] = useState(null);
   // Load user on startup
   useEffect(() => {
     const loadUser = async () => {
@@ -17,6 +17,7 @@ export const AuthProvider = ({ children }) => {
           // Verify token and fetch user details
           const response = await api.get('/auth/me');
           setUser(response.data);
+          setToken(token);
         }
       } catch (error) {
         console.log('Error loading user', error);
@@ -41,6 +42,7 @@ export const AuthProvider = ({ children }) => {
       // Fetch user details
       const userRes = await api.get('/auth/me');
       setUser(userRes.data);
+      setToken(access_token);
       return { success: true };
     } catch (error) {
       return { success: false, error: error.response?.data?.detail || 'Login failed' };
@@ -63,7 +65,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, token, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );

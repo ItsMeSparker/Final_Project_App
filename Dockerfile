@@ -2,14 +2,14 @@ FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
+# It's okay to keep legacy-peer-deps for the global ngrok install
 RUN npm install -g @expo/ngrok --legacy-peer-deps
 
 COPY package*.json ./
 
-RUN npm install --legacy-peer-deps
+# REMOVE --legacy-peer-deps here! Let npm enforce the correct versions.
+RUN npm install
 
-# In development, this COPY acts as a fallback. 
-# Your live code will actually be mounted via volumes.
 COPY . .
 
 EXPOSE 8081

@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { AuthContext } from '../context/AuthContext';
 import { COLORS, icons, images, SIZES , wallpaper} from '../constants'
 import { ScreenHeaderBtn } from '../components'
+import { Ionicons } from '@expo/vector-icons';
 
 const background = require('../assets/images/Background_1.png');
 const Red_Button = require('../assets/images/Red_Button.png');
@@ -28,9 +29,19 @@ const Home = () => {
                             headerTransparent: true,
                             headerTitle: "",
                             headerTintColor: '#fff',
+                            headerStyle: { backgroundColor: 'transparent' },
+        
+                            headerLeft: () => (
+                                <TouchableOpacity 
+                                    onPress={() => router.push('/Profile')} 
+                                    style={{ padding: 5, borderRadius: 5, backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+                                >
+                                    <Ionicons name="person-circle-outline" size={28} color="grey" />
+                                </TouchableOpacity>
+                            ),
                             headerRight: () => (
-                                <TouchableOpacity onPress={logout} style={{ marginRight: 15 }}>
-                                    <Text style={{ color: 'red', fontWeight: 'bold' }}>Logout</Text>
+                                <TouchableOpacity onPress={logout} style={{padding: 5, borderRadius: 5, backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
+                                    <Ionicons name="power" size={28} color="red" />
                                 </TouchableOpacity>
                             )
                         }}
@@ -70,6 +81,15 @@ const Home = () => {
                         <Image source={Blue_Button} resizeMode='contain' style={{width: '100%', height: '100%'}}/>
                         <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center'}}>
                             <Text style={styles_normal.text}>Settings</Text>
+                        </View>
+                    </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={() => router.push('/Rabbits')}>
+                    <View style={{position: 'relative', width: 300, height: 90, justifyContent: 'center', marginVertical: 5}}>
+                        <Image source={Blue_Button} resizeMode='contain' style={{width: '100%', height: '100%'}}/>
+                        <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center'}}>
+                            <Text style={styles_normal.text}>Rabbits</Text>
                         </View>
                     </View>
                 </TouchableOpacity>
