@@ -2,8 +2,8 @@ import React, {useState} from 'react'
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert, ScrollView, Image} from 'react-native'
 import { Stack, useRouter } from 'expo-router'
 
-import { COLORS, icons, images, SIZES } from '../constants'
-import { ScreenHeaderBtn } from '../components'
+import { COLORS, icons, images, SIZES } from '../../constants'
+import { ScreenHeaderBtn } from '../../components'
 
 const Information = () => {
     const [count, setCount] = useState(0);

@@ -2,14 +2,14 @@ import React, { useContext } from 'react';
 import { View, Text, StyleSheet, ImageBackground, Image, TouchableOpacity } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../../context/AuthContext';
 
-const background = require('../assets/images/Background_1.png');
-const Rabbit = require('../assets/images/Bunny_Logo.png');
+const background = require('../../assets/images/Background_1.png');
+const Rabbit = require('../../assets/images/Bunny_Logo.png');
 
 const Profile = () => {
     const router = useRouter();
-    const { user } = useContext(AuthContext); // Make sure your AuthContext exposes a 'user' object
+    const { user,logout } = useContext(AuthContext); // Make sure your AuthContext exposes a 'user' object
 
     return (
         <ImageBackground
@@ -45,6 +45,10 @@ const Profile = () => {
                         <Text style={styles.value}>{user?.email ?? 'N/A'}</Text>
                     </View>
                 </View>
+                <TouchableOpacity onPress={() => logout()} style={{padding: 5, borderRadius: 5, backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
+                    <Ionicons name="power" size={28} color="#e05c5c" />
+                    <Text>Logout</Text>
+                </TouchableOpacity>
 
                 {/* Add more fields here as needed */}
 

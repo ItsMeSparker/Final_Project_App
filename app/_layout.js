@@ -44,7 +44,11 @@ const InitialLayout = () => {
         );
     }
         
-    return <Stack onLayout={onLayoutRootView}/>;
+    return (
+        <Stack onLayout={onLayoutRootView}>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        </Stack>
+    );
 }
 
 const Layout = () => {

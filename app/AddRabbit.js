@@ -1,7 +1,8 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, StyleSheet, ImageBackground, TextInput, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, TextInput, TouchableOpacity, Alert, ScrollView, ActivityIndicator, Platform } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import axios from 'axios';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { AuthContext } from '../context/AuthContext';
 
 const background = require('../assets/images/Background_1.png');
@@ -12,8 +13,27 @@ const AddRabbit = () => {
     const { token } = useContext(AuthContext);
     const [name, setName] = useState('');
     const [breed, setBreed] = useState('');
+    const [date, setDate] = useState(new Date());
     const [dateOfBirth, setDateOfBirth] = useState(''); // Format: YYYY-MM-DD
+    const [showPicker, setShowPicker] = useState(false);
     const [loading, setLoading] = useState(false);
+
+    const formatDate = (rawDate) => {
+        const year = rawDate.getFullYear();
+        const month = String(rawDate.getMonth() + 1).padStart(2, '0');
+        const day = String(rawDate.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const handleDateChange = (event, selectedDate) => {
+        if (Platform.OS === 'android') {
+            setShowPicker(false);
+        }
+        if (event.type === 'set' && selectedDate) {
+            setDate(selectedDate);
+            setDateOfBirth(formatDate(selectedDate));
+        }
+    };
 
     const handleSubmit = async () => {
         if (!name || !breed || !dateOfBirth) {
@@ -22,7 +42,6 @@ const AddRabbit = () => {
         }
         setLoading(true);
         try {
-            console.log(token);
             await axios.post(`${BASE_URL}/rabbits/`,
                 { name, breed, date_of_birth: dateOfBirth },
                 { headers: { Authorization: `Bearer ${token}` } }
@@ -67,14 +86,27 @@ const AddRabbit = () => {
                         onChangeText={setBreed}
                     />
 
-                    <Text style={styles.label}>Date of Birth (YYYY-MM-DD)</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="e.g. 2023-06-15"
-                        value={dateOfBirth}
-                        onChangeText={setDateOfBirth}
-                        keyboardType="normal"
-                    />
+                    <Text style={styles.label}>Date of Birth</Text>
+                    <TouchableOpacity 
+                        style={styles.datePickerButton} 
+                        onPress={() => setShowPicker(true)}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={[styles.dateText, !dateOfBirth && styles.placeholderText]}>
+                            {dateOfBirth ? dateOfBirth : "Select Date of Birth (YYYY-MM-DD)"}
+                        </Text>
+                    </TouchableOpacity>
+
+                    {showPicker && (
+                        <DateTimePicker
+                            value={date}
+                            mode="date"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                            maximumDate={new Date()}
+                            onChange={handleDateChange}
+                            textColor="#212121"
+                        />
+                    )}
 
                     <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={loading}>
                         {loading
@@ -99,6 +131,21 @@ const styles = StyleSheet.create({
         fontSize: 16,
         borderWidth: 1,
         borderColor: '#ddd',
+    },
+    datePickerButton: {
+        backgroundColor: '#f5f5f5',
+        borderRadius: 10,
+        padding: 14,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        justifyContent: 'center',
+    },
+    dateText: {
+        fontSize: 16,
+        color: '#333',
+    },
+    placeholderText: {
+        color: '#aaa',
     },
     submitButton: {
         backgroundColor: '#e05c5c',

@@ -1,8 +1,8 @@
 import React, {useState} from 'react'
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert, ScrollView, Image, ImageBackground} from 'react-native'
 import { Stack, useRouter } from 'expo-router'
-import { COLORS, icons, images, SIZES , wallpaper} from '../constants'
-import { ScreenHeaderBtn } from '../components'
+import { COLORS, icons, images, SIZES , wallpaper} from '../../constants'
+import { ScreenHeaderBtn } from '../../components'
 import { Dimensions } from 'react-native';
 
 const screenWidth = Dimensions.get('window').width; 
@@ -11,10 +11,10 @@ const Report = () => {
     const [count, setCount] = useState(0);
     const onPress = () => setCount(prevCount => prevCount + 1);
     const router = useRouter();
-    const background = require('../assets/images/Background_4.png');
-    const calendar  = require('../assets/images/Calendar_Pixel.png');
-    const document  = require('../assets/images/Document_Pixel.png');
-    const back_button = require('../assets/images/Small_Yellow_Button.png')
+    const background = require('../../assets/images/Background_4.png');
+    const calendar  = require('../../assets/images/Calendar_Pixel.png');
+    const document  = require('../../assets/images/Document_Pixel.png');
+    const back_button = require('../../assets/images/Small_Yellow_Button.png')
 
     return (
         <>
