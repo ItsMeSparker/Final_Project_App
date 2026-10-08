@@ -1,19 +1,20 @@
 import React, {useState} from 'react'
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert, ScrollView, Image, ImageBackground} from 'react-native'
 import { Stack, useRouter } from 'expo-router'
-//import {} from 'react-native-executorch'
-import { COLORS, icons, images, SIZES , wallpaper} from '../constants'
-import { ScreenHeaderBtn } from '../components'
+import { COLORS, icons, images, SIZES , wallpaper} from '../../constants'
+import { ScreenHeaderBtn } from '../../components'
+import { Dimensions } from 'react-native';
 
+const screenWidth = Dimensions.get('window').width; 
 
 const Report = () => {
     const [count, setCount] = useState(0);
     const onPress = () => setCount(prevCount => prevCount + 1);
     const router = useRouter();
-    const background = require('../assets/images/Background_4.png');
-    const calendar  = require('../assets/images/Calendar_Pixel.png');
-    const document  = require('../assets/images/Document_Pixel.png');
-    const back_button = require('../assets/images/Small_Yellow_Button.png')
+    const background = require('../../assets/images/Background_4.png');
+    const calendar  = require('../../assets/images/Calendar_Pixel.png');
+    const document  = require('../../assets/images/Document_Pixel.png');
+    const back_button = require('../../assets/images/Small_Yellow_Button.png')
 
     return (
         <>
@@ -22,12 +23,12 @@ const Report = () => {
             <ImageBackground source={background} resizeMode="cover" style={{flex:1, width: '100%', alignItems: 'center', justifyContent: 'flex-start', paddingTop: 20}}>
                 <Text style={[styles_head.text_big, {marginTop: 5}]}>Result for Scanning</Text>
                 
-                <View style = {{justifyContent: 'space-between', flexDirection: 'row', margin: 'auto'}}>
-                    <View style={[styles_normal.frame, {width: 200, justifyContent: 'space-evenly',alignItems: 'flex-start'}]}>
+                <View style = {{justifyContent: 'space-around', flexDirection: 'row', margin: 'auto'}}>
+                    <View style={[styles_normal.frame, {width: 0.4*screenWidth, justifyContent: 'space-evenly',alignItems: 'flex-start'}]}>
                         <Text style={[styles_normal.text, {textDecorationColor: '#FF0000'}]}>   Risk: </Text>
                     </View>
 
-                    <View style={[styles_normal.frame, {width: 200, justifyContent: 'space-evenly',alignItems: 'flex-start'}]}>
+                    <View style={[styles_normal.frame, {width: 0.4*screenWidth, justifyContent: 'space-evenly',alignItems: 'flex-start'}]}>
                         <Text style={[styles_normal.text, {textDecorationColor: '#FF0000'}]}>   Level: </Text>
                     </View>
                 </View>
@@ -40,11 +41,11 @@ const Report = () => {
                     <View style={[styles_normal.frame_big, {alignItems: 'center'}]}>
                     </View>
                     
-                    <View style={[styles_normal.frame, {width: 450, alignItems: 'flex-start'}]}>
+                    <View style={[styles_normal.frame, {width: 0.9*screenWidth, alignItems: 'flex-start'}]}>
                         <Text style={styles_normal.text}>   Serveillance period:</Text>
                     </View>
 
-                    <View style= {{alignSelf: 'center', flexDirection: 'row', marginLeft: 20}}>
+                    <View style= {{alignSelf: 'center', flexDirection: 'row'}}>
                         <TouchableOpacity style={[styles_normal.frame_big, {width: 180, height: 180, backgroundColor: '#53CFFB', alignItems: 'center', gap: 10}]} onPress={() => router.push('/weekly')}>
                             <Text style={[styles_normal.text, {fontSize: 20}]}>Add to Rabbit Tracking</Text>
                             <Image source={calendar} style={{width: 100, height: 100 }}/>
@@ -107,7 +108,7 @@ const styles_normal = StyleSheet.create({
         borderBottomRightRadius: 80,
     },
     frame_big:{
-        width: '90%', // EDITED: Changed from 600 to '90%' to fix massive overflow
+        width: screenWidth * 0.9, 
         height: 200,
         justifyContent: 'center',
         backgroundColor: '#F5E6A9',

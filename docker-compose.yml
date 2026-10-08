@@ -1,0 +1,24 @@
+
+
+services:
+  app:
+    container_name: final_project_frontend
+    build: .
+    ports:
+      - "8082:8081"
+    env_file:
+      - .env
+    environment:
+      - NODE_OPTIONS=--dns-result-order=ipv4first
+      - EXPO_NO_DOCTOR=true
+      - EXPO_NO_TELEMETRY=true
+    stdin_open: true
+    tty: true
+    # This is the magic snippet that replaces standard volumes:
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /usr/src/app
+          ignore:
+            - node_modules/

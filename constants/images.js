@@ -1,4 +1,4 @@
-import profile from "../assets/images/Prayut.jpg";
+import profile from "../assets/favicon.png";
  
 export default {
   profile,
