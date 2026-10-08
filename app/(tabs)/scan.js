@@ -114,7 +114,6 @@ const styles_normal = StyleSheet.create({
         backgroundColor: '#F5E6A9',
         borderWidth: 2,
         margin: 10,
-
         borderTopLeftRadius: 40,
         borderTopRightRadius: 40,
         borderBottomLeftRadius: 40,
@@ -122,16 +121,15 @@ const styles_normal = StyleSheet.create({
     },
     text: {
         fontSize: 30,
-        fontWeight: 'Bold',
+        fontWeight: 'bold', // EDITED: Changed 'Bold' to 'bold' (React Native requires lowercase)
         textAlign: 'center',
     },
     button: {
-        width: 40 * 4,
+        width: 160, // EDITED: Changed from 40 * 4 to simply 160
         height: 40,
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#F5E6A9',
-        
         borderTopLeftRadius: 40,
         borderTopRightRadius: 40,
         borderBottomLeftRadius: 40,
