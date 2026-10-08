@@ -29,3 +29,5 @@ A React Native frontend built with Expo, featuring camera capabilities, image up
 2. **Backend Connection:** You need to expose your backend (which runs on port 8000) so this frontend app can access it. Run an ngrok tunnel (or your preferred tunnel tool) on port 8000 or any port of your backend:
    ```bash
    ngrok http 8000
+### **🔗 Related Repositories / PRs**
+- **Backend Repository:** https://github.com/supakornpao/Rabbit_backend.git
