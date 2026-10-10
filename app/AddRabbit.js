@@ -58,7 +58,7 @@ const AddRabbit = () => {
     };
 
     return (
-        <ImageBackground source={background} resizeMode="cover" style={{ flex: 1 }}>
+        <ImageBackground source={background} resizeMode="cover" style={{ flex: 1 }} imageStyle={{ transform: [{ scale: 1.1 }] }}>
             <Stack.Screen
                 options={{
                     headerStyle: { backgroundColor: 'transparent' },

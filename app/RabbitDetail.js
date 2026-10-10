@@ -118,7 +118,7 @@ const RabbitDetail = () => {
     if (loading) return <ActivityIndicator size="large" color="#fff" style={{ flex: 1, backgroundColor: '#333' }} />;
 
     return (
-        <ImageBackground source={background} resizeMode="cover" style={{ flex: 1 }}>
+        <ImageBackground source={background} resizeMode="cover" style={{ flex: 1 }} imageStyle={{ transform: [{ scale: 1.1 }] }}>
             <Stack.Screen
                 options={{
                     headerStyle: { backgroundColor: 'transparent' },
@@ -178,10 +178,17 @@ const RabbitDetail = () => {
                             </TouchableOpacity>
                         </View>
                     ) : (
-                        <TouchableOpacity style={[styles.button, { backgroundColor: '#e05c5c', marginTop: 20 }]} onPress={() => setEditing(true)}>
-                            <Ionicons name="pencil-outline" size={18} color="#fff" />
-                            <Text style={[styles.buttonText, { marginLeft: 8 }]}>Edit Rabbit</Text>
-                        </TouchableOpacity>
+                        <View style={{ gap: 12, marginTop: 20 }}>
+                            <TouchableOpacity style={[styles.button, { backgroundColor: '#4A90E2' }]} onPress={() => router.push({ pathname: '/scan', params: { rabbitId: id } })}>
+                                <Ionicons name="scan-circle-outline" size={22} color="#fff" />
+                                <Text style={[styles.buttonText, { marginLeft: 8 }]}>Quick Scan</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity style={[styles.button, { backgroundColor: '#e05c5c' }]} onPress={() => setEditing(true)}>
+                                <Ionicons name="pencil-outline" size={18} color="#fff" />
+                                <Text style={[styles.buttonText, { marginLeft: 8 }]}>Edit Rabbit</Text>
+                            </TouchableOpacity>
+                        </View>
                     )}
                 </View>
             </ScrollView>
