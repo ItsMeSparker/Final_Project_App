@@ -121,7 +121,7 @@ const AddRabbit = () => {
 };
 
 const styles = StyleSheet.create({
-    container: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 20, paddingTop: 120 },
+    container: { flexGrow: 1, justifyContent: 'flex-start', alignItems: 'center', padding: 20, paddingTop: 120 },
     card: { backgroundColor: 'rgba(255,255,255,0.93)', borderRadius: 20, padding: 25, width: '100%' },
     label: { fontSize: 14, fontWeight: '600', color: '#555', marginBottom: 6, marginTop: 14 },
     input: {

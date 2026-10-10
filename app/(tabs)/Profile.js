@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { View, Text, StyleSheet, ImageBackground, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, Image, TouchableOpacity, Dimensions } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../../context/AuthContext';
@@ -7,17 +7,21 @@ import { AuthContext } from '../../context/AuthContext';
 const background = require('../../assets/images/Background_1.png');
 const Rabbit = require('../../assets/images/Bunny_Logo.png');
 
+const { width, height } = Dimensions.get('window');
+
 const Profile = () => {
     const router = useRouter();
     const { user,logout } = useContext(AuthContext); // Make sure your AuthContext exposes a 'user' object
 
     return (
-        <ImageBackground
-            source={background}
-            resizeMode="cover"
-            style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'flex-start', paddingTop: 80 }}
-        >
-            <Stack.Screen
+        <View style={{ flex: 1 }}>
+            <ImageBackground
+                source={background}
+                resizeMode="cover"
+                style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'flex-start', paddingTop: 80 }]}
+                imageStyle={{ transform: [{ scale: 1.1 }] }}
+            >
+                <Stack.Screen
                 options={{
                     headerStyle: { backgroundColor: 'transparent' },
                     headerTransparent: true,
@@ -45,16 +49,18 @@ const Profile = () => {
                         <Text style={styles.value}>{user?.email ?? 'N/A'}</Text>
                     </View>
                 </View>
-                <TouchableOpacity onPress={() => logout()} style={{padding: 5, borderRadius: 5, backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
-                    <Ionicons name="power" size={28} color="#e05c5c" />
-                    <Text>Logout</Text>
-                </TouchableOpacity>
-
                 {/* Add more fields here as needed */}
 
             </View>
 
+            {/* Logout Button */}
+            <TouchableOpacity onPress={() => logout()} style={styles.logoutButton}>
+                <Ionicons name="power" size={24} color="white" />
+                <Text style={styles.logoutText}>Logout</Text>
+            </TouchableOpacity>
+
         </ImageBackground>
+        </View>
     );
 };
 
@@ -94,6 +100,28 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
         color: '#333',
+    },
+    logoutButton: {
+        marginTop: 30,
+        backgroundColor: '#e05c5c',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 25,
+        width: '60%',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+        elevation: 3,
+    },
+    logoutText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginLeft: 8,
     },
 });
 

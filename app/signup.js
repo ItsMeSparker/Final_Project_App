@@ -23,7 +23,7 @@ export default function Signup() {
   const isFormValid = email.trim() !== '' && password.trim() !== '';
 
   return (
-    <ImageBackground source={require('../assets/images/Background_1.png')} resizeMode="cover" style={styles.container}>
+    <ImageBackground source={require('../assets/images/Background_1.png')} resizeMode="cover" style={styles.container} imageStyle={{ transform: [{ scale: 1.1 }] }}>
         <Stack.Screen
                         options={{
                             headerStyle: { backgroundColor: 'transparent' },

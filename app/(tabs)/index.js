@@ -68,21 +68,22 @@ const Rabbits = () => {
                     <Text style={rabbitsStyles.emptyText}>No rabbits yet!</Text>
                     <Text style={rabbitsStyles.emptySubText}>Tap the + button to add your first rabbit.</Text>
                 </View>
-            ) : (<>
+            ) : (
                 <FlatList
                     data={rabbits}
                     keyExtractor={(item) => item.id}
                     renderItem={renderItem}
                     contentContainerStyle={rabbitsStyles.list}
+                    ListFooterComponent={
+                        <TouchableOpacity
+                            onPress={() => router.push('/AddRabbit')}
+                            style={rabbitsStyles.addButton}
+                        >
+                            <Ionicons name="add" size={28} color="white" />
+                            <Text style={{ color: 'white', marginLeft: 10, fontSize: 18, fontWeight: 'bold' }}>Add Rabbit</Text>
+                        </TouchableOpacity>
+                    }
                 />
-                <TouchableOpacity
-                    onPress={() => router.push('/AddRabbit')}
-                    style={rabbitsStyles.addButton}
-                >
-                    <Ionicons name="add" size={28} color="white" />
-                </TouchableOpacity>
-                
-                </>
                 
                 
             )}
