@@ -6,10 +6,15 @@ import { Stack,useRouter } from 'expo-router';
 export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const { signup } = useContext(AuthContext);
   const router = useRouter();
 
   const handleSignup = async () => {
+    if (password !== confirmPassword) {
+      Alert.alert('Signup Failed', 'Passwords do not match.');
+      return;
+    }
     const result = await signup(email, password);
     if (result.success) {
       Alert.alert('Success', 'Account created! Please log in.', [
@@ -20,7 +25,7 @@ export default function Signup() {
     }
   };
 
-  const isFormValid = email.trim() !== '' && password.trim() !== '';
+  const isFormValid = email.trim() !== '' && password.trim() !== '' && confirmPassword.trim() !== '';
 
   return (
     <ImageBackground source={require('../assets/images/Background_1.png')} resizeMode="cover" style={styles.container} imageStyle={{ transform: [{ scale: 1.1 }] }}>
@@ -49,6 +54,14 @@ export default function Signup() {
         placeholderTextColor="#686868"
         value={password}
         onChangeText={setPassword}
+        secureTextEntry
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Confirm Password"
+        placeholderTextColor="#686868"
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
         secureTextEntry
       />
       <Button title="Sign Up" onPress={handleSignup} disabled={!isFormValid} />

@@ -21,6 +21,7 @@ export const rabbitsStyles = StyleSheet.create({
         borderRadius: 15,
         padding: 18,
         marginBottom: 12,
+        marginTop: 12,
         flexDirection: 'row',
         alignItems: 'center',
         shadowColor: '#000',

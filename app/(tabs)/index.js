@@ -67,6 +67,13 @@ const Rabbits = () => {
                     <Ionicons name="heart-outline" size={60} color="rgba(255,255,255,0.6)" />
                     <Text style={rabbitsStyles.emptyText}>No rabbits yet!</Text>
                     <Text style={rabbitsStyles.emptySubText}>Tap the + button to add your first rabbit.</Text>
+                    <TouchableOpacity
+                            onPress={() => router.push('/AddRabbit')}
+                            style={rabbitsStyles.addButton}
+                        >
+                            <Ionicons name="add" size={28} color="white" />
+                            <Text style={{ color: 'white', marginLeft: 10, fontSize: 18, fontWeight: 'bold' }}>Add Rabbit</Text>
+                        </TouchableOpacity>
                 </View>
             ) : (
                 <FlatList
