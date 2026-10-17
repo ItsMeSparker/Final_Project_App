@@ -1,5 +1,5 @@
-import React, { useContext } from 'react';
-import { View, Text, StyleSheet, ImageBackground, Image, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { View, Text, TextInput, Alert, ActivityIndicator, StyleSheet, ImageBackground, Image, TouchableOpacity, Dimensions } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../../context/AuthContext';
@@ -11,7 +11,32 @@ const { width, height } = Dimensions.get('window');
 
 const Profile = () => {
     const router = useRouter();
-    const { user,logout } = useContext(AuthContext); // Make sure your AuthContext exposes a 'user' object
+    const { user, updateUsername, logout } = useContext(AuthContext);
+    const [editing, setEditing] = useState(false);
+    const [newUsername, setNewUsername] = useState(user?.username ?? '');
+    const [saving, setSaving] = useState(false);
+
+    const handleStartEdit = () => {
+        setNewUsername(user?.username ?? '');
+        setEditing(true);
+    };
+
+    const handleSaveUsername = async () => {
+        const trimmed = newUsername.trim();
+        if (!trimmed) {
+            Alert.alert('Validation Error', 'Username cannot be empty.');
+            return;
+        }
+        setSaving(true);
+        const result = await updateUsername(trimmed);
+        setSaving(false);
+        if (result.success) {
+            setEditing(false);
+            Alert.alert('Success', 'Username updated!');
+        } else {
+            Alert.alert('Update Failed', result.error);
+        }
+    };
 
     return (
         <View style={{ flex: 1 }}>
@@ -39,7 +64,50 @@ const Profile = () => {
             {/* User Info Card */}
             <View style={styles.card}>
 
-                
+                {/* Username */}
+                <View style={styles.infoRow}>
+                    <Ionicons name="person-outline" size={22} color="#555" />
+                    <View style={[styles.infoText, { flex: 1 }]}>
+                        <Text style={styles.label}>Username</Text>
+                        {editing ? (
+                            <View style={styles.editContainer}>
+                                <TextInput
+                                    style={styles.input}
+                                    value={newUsername}
+                                    onChangeText={setNewUsername}
+                                    placeholder="Enter username"
+                                    autoCapitalize="none"
+                                    autoFocus
+                                />
+                                <TouchableOpacity
+                                    onPress={handleSaveUsername}
+                                    disabled={saving}
+                                    style={[styles.iconButton, { backgroundColor: '#2ecc71' }]}
+                                >
+                                    {saving ? (
+                                        <ActivityIndicator size="small" color="#fff" />
+                                    ) : (
+                                        <Ionicons name="checkmark" size={18} color="#fff" />
+                                    )}
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={() => setEditing(false)}
+                                    disabled={saving}
+                                    style={[styles.iconButton, { backgroundColor: '#95a5a6' }]}
+                                >
+                                    <Ionicons name="close" size={18} color="#fff" />
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <Text style={styles.value}>{user?.username ?? 'Not set'}</Text>
+                        )}
+                    </View>
+                    {!editing && (
+                        <TouchableOpacity onPress={handleStartEdit} style={styles.editTrigger}>
+                            <Ionicons name="create-outline" size={22} color="#e05c5c" />
+                        </TouchableOpacity>
+                    )}
+                </View>
 
                 {/* Email */}
                 <View style={styles.infoRow}>
@@ -100,6 +168,32 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
         color: '#333',
+    },
+    editTrigger: {
+        padding: 6,
+    },
+    editContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 4,
+    },
+    input: {
+        flex: 1,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        fontSize: 15,
+        backgroundColor: '#fff',
+        color: '#333',
+    },
+    iconButton: {
+        marginLeft: 8,
+        padding: 8,
+        borderRadius: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     logoutButton: {
         marginTop: 30,

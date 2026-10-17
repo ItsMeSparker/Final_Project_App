@@ -5,6 +5,7 @@ import { Stack,useRouter } from 'expo-router';
 
 export default function Signup() {
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const { signup } = useContext(AuthContext);
@@ -15,7 +16,7 @@ export default function Signup() {
       Alert.alert('Signup Failed', 'Passwords do not match.');
       return;
     }
-    const result = await signup(email, password);
+    const result = await signup(email.trim(), username.trim(), password);
     if (result.success) {
       Alert.alert('Success', 'Account created! Please log in.', [
         { text: 'OK', onPress: () => router.replace('/login') }
@@ -25,7 +26,7 @@ export default function Signup() {
     }
   };
 
-  const isFormValid = email.trim() !== '' && password.trim() !== '' && confirmPassword.trim() !== '';
+  const isFormValid = email.trim() !== '' && username.trim() !== '' && password.trim() !== '' && confirmPassword.trim() !== '';
 
   return (
     <ImageBackground source={require('../assets/images/Background_1.png')} resizeMode="cover" style={styles.container} imageStyle={{ transform: [{ scale: 1.1 }] }}>
@@ -39,6 +40,14 @@ export default function Signup() {
             />
       <View style={{ padding: 20, backgroundColor: '#f0f0f0', borderRadius: 10 }}>
       <Text style={styles.title}>Create Account</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Username"
+        placeholderTextColor="#686868"
+        value={username}
+        onChangeText={setUsername}
+        autoCapitalize="none"
+      />
       <TextInput
         style={styles.input}
         placeholder="Email"

@@ -49,12 +49,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signup = async (email, password) => {
+  const signup = async (email, username, password) => {
     try {
-      await api.post('/auth/signup', { email, password });
+      await api.post('/auth/signup', { email, username, password });
       return { success: true };
     } catch (error) {
       return { success: false, error: error.response?.data?.detail || 'Signup failed' };
+    }
+  };
+
+  const updateUsername = async (newUsername) => {
+    try {
+      const response = await api.put('/auth/me', { username: newUsername });
+      setUser(response.data);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.detail || 'Failed to update username' };
     }
   };
 
@@ -65,7 +75,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, token, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, token, login, signup, updateUsername, logout }}>
       {children}
     </AuthContext.Provider>
   );
