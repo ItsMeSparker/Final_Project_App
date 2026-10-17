@@ -1,18 +1,25 @@
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-import { useState, useRef, useCallback } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, Image } from 'react-native';
+import { useState, useRef, useCallback, useContext } from 'react';
+import { Button, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useRouter, useFocusEffect } from 'expo-router';
+import { Stack, useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import Slider from '@react-native-community/slider';
+import axios from 'axios';
+import { AuthContext } from '../context/AuthContext';
+
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export default function CameraScreen() {
+  const { rabbitId } = useLocalSearchParams();
+  const { token } = useContext(AuthContext);
   const [facing, setFacing] = useState('back');
   const [permission, requestPermission] = useCameraPermissions();
   const [zoom, setZoom] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [photoUri, setPhotoUri] = useState(null);
+  const [limb, setLimb] = useState('front_left');
   const cameraRef = useRef(null);
   const router = useRouter();
   const [isFocused, setIsFocused] = useState(false);
@@ -35,8 +42,6 @@ export default function CameraScreen() {
       aspect:[4, 3],
       quality: 1,
     });
-
-    console.log(result);
 
     if (!result.canceled) {
       setPhotoUri(result.assets[0].uri);
@@ -83,12 +88,54 @@ export default function CameraScreen() {
 
   async function processAndNavigate() {
     if (!photoUri) return;
+    if (!token) {
+      Alert.alert("Authentication Error", "You must be logged in to scan.");
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      router.push('/Report');
+      let targetRabbitId = rabbitId;
+      if (!targetRabbitId) {
+        const rabbitsRes = await axios.get(`${BASE_URL}/rabbits/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (rabbitsRes.data && rabbitsRes.data.length > 0) {
+          targetRabbitId = rabbitsRes.data[0].id;
+        } else {
+          Alert.alert("No Rabbit Found", "Please create a rabbit profile first before scanning.");
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      const formData = new FormData();
+      const filename = photoUri.split('/').pop() || 'paw_scan.jpg';
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+      formData.append('file', {
+        uri: photoUri,
+        name: filename,
+        type: type,
+      });
+      formData.append('rabbit_id', targetRabbitId);
+      formData.append('limb', limb);
+
+      const response = await axios.post(`${BASE_URL}/scans/`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      router.push({
+        pathname: '/Report',
+        params: { scanData: JSON.stringify(response.data) }
+      });
     } catch (error) {
-      console.error('Error processing photo', error);
+      console.error('Error processing photo:', error);
+      Alert.alert("Scan Failed", error.response?.data?.detail || "Failed to analyze paw photo. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -98,12 +145,46 @@ export default function CameraScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <Image source={{ uri: photoUri }} style={styles.preview} />
+
+        {/* Limb selection selector */}
+        <View style={styles.limbSelectorContainer}>
+          <Text style={styles.limbLabel}>Select Paw:</Text>
+          <View style={styles.limbButtonsRow}>
+            {[
+              { id: 'front_left', label: 'Front L' },
+              { id: 'front_right', label: 'Front R' },
+              { id: 'back_left', label: 'Back L' },
+              { id: 'back_right', label: 'Back R' }
+            ].map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={[
+                  styles.limbButton,
+                  limb === item.id && styles.limbButtonActive
+                ]}
+                onPress={() => setLimb(item.id)}
+              >
+                <Text style={[
+                  styles.limbButtonText,
+                  limb === item.id && styles.limbButtonTextActive
+                ]}>
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
         <View style={styles.previewButtons}>
-          <TouchableOpacity style={styles.actionButton} onPress={retakePhoto}>
+          <TouchableOpacity style={styles.actionButton} onPress={retakePhoto} disabled={isLoading}>
             <Text style={styles.buttonText}>Retake</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.actionButton, { backgroundColor: '#e05c5c' }]} onPress={processAndNavigate} disabled={isLoading}>
-            <Text style={styles.buttonText}>{isLoading ? 'Processing...' : 'Process'}</Text>
+            {isLoading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.buttonText}>Process Scan</Text>
+            )}
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -272,5 +353,41 @@ const styles = StyleSheet.create({
   image:{
     width:200,
     height: 200,
-  }
+  },
+  limbSelectorContainer: {
+    padding: 12,
+    backgroundColor: '#111',
+    alignItems: 'center',
+  },
+  limbLabel: {
+    color: '#aaa',
+    fontSize: 13,
+    marginBottom: 8,
+    fontWeight: '600',
+  },
+  limbButtonsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  limbButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    backgroundColor: '#2a2a2a',
+    borderWidth: 1,
+    borderColor: '#444',
+  },
+  limbButtonActive: {
+    backgroundColor: '#e05c5c',
+    borderColor: '#e05c5c',
+  },
+  limbButtonText: {
+    color: '#bbb',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  limbButtonTextActive: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
 });
