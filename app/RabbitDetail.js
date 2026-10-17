@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, StyleSheet, ImageBackground, TextInput, TouchableOpacity, Alert, ScrollView, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, Image, TextInput, TouchableOpacity, Alert, ScrollView, ActivityIndicator, Platform } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { AuthContext } from '../context/AuthContext';
@@ -22,6 +23,7 @@ const RabbitDetail = () => {
     const [dateOfBirth, setDateOfBirth] = useState('');
     const [date, setDate] = useState(new Date());
     const [showPicker, setShowPicker] = useState(false);
+    const [uploading, setUploading] = useState(false);
 
     const formatDate = (rawDate) => {
         const year = rawDate.getFullYear();
@@ -37,6 +39,51 @@ const RabbitDetail = () => {
         if (event.type === 'set' && selectedDate) {
             setDate(selectedDate);
             setDateOfBirth(formatDate(selectedDate));
+        }
+    };
+
+    const handlePickAndUploadPhoto = async () => {
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permissionResult.granted) {
+            Alert.alert("Permission required", "Camera roll permissions are required to upload a profile photo.");
+            return;
+        }
+
+        const pickerResult = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+        });
+
+        if (pickerResult.canceled) return;
+
+        const asset = pickerResult.assets[0];
+        const formData = new FormData();
+        const filename = asset.uri.split('/').pop() || 'photo.jpg';
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+        formData.append('file', {
+            uri: asset.uri,
+            name: filename,
+            type: type,
+        });
+
+        try {
+            setUploading(true);
+            const response = await axios.post(`${BASE_URL}/rabbits/${id}/photo`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            setRabbit(response.data);
+            Alert.alert("Success", "Rabbit photo updated!");
+        } catch (error) {
+            Alert.alert("Upload Failed", "Could not upload rabbit photo.");
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -136,6 +183,27 @@ const RabbitDetail = () => {
 
             <ScrollView contentContainerStyle={styles.container}>
                 <View style={styles.card}>
+                    {/* Rabbit Profile Photo */}
+                    <View style={styles.avatarSection}>
+                        <TouchableOpacity onPress={handlePickAndUploadPhoto} disabled={uploading} style={styles.avatarWrapper}>
+                            {rabbit?.image_url ? (
+                                <Image source={{ uri: `${BASE_URL}${rabbit.image_url}` }} style={styles.avatarImage} />
+                            ) : (
+                                <View style={styles.avatarPlaceholder}>
+                                    <Ionicons name="paw" size={45} color="#e05c5c" />
+                                </View>
+                            )}
+                            <View style={styles.cameraIconBadge}>
+                                {uploading ? (
+                                    <ActivityIndicator size="small" color="#fff" />
+                                ) : (
+                                    <Ionicons name="camera" size={16} color="#fff" />
+                                )}
+                            </View>
+                        </TouchableOpacity>
+                        <Text style={styles.avatarHint}>Tap photo to change</Text>
+                    </View>
+
                     <Text style={styles.label}>Name</Text>
                     <TextInput style={styles.input} value={name} onChangeText={setName} editable={editing} />
 
@@ -199,6 +267,12 @@ const RabbitDetail = () => {
 const styles = StyleSheet.create({
     container: { flexGrow: 1, alignItems: 'center', padding: 20, paddingTop: 120 },
     card: { backgroundColor: 'rgba(255,255,255,0.93)', borderRadius: 20, padding: 25, width: '100%' },
+    avatarSection: { alignItems: 'center', marginBottom: 15 },
+    avatarWrapper: { position: 'relative', width: 96, height: 96, borderRadius: 48, justifyContent: 'center', alignItems: 'center' },
+    avatarImage: { width: 96, height: 96, borderRadius: 48 },
+    avatarPlaceholder: { width: 96, height: 96, borderRadius: 48, backgroundColor: '#ffeaea', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#e05c5c' },
+    cameraIconBadge: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#e05c5c', width: 28, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fff' },
+    avatarHint: { fontSize: 12, color: '#888', marginTop: 6 },
     label: { fontSize: 14, fontWeight: '600', color: '#555', marginBottom: 6, marginTop: 14 },
     input: { backgroundColor: '#f5f5f5', borderRadius: 10, padding: 12, fontSize: 16, borderWidth: 1, borderColor: '#ddd' },
     datePickerButton: {

@@ -38,7 +38,14 @@ const Rabbits = () => {
             style={rabbitsStyles.card}
             onPress={() => router.push({ pathname: '/RabbitDetail', params: { id: item.id } })}
         >
-            <Ionicons name="heart" size={30} color="#e05c5c" style={{ marginRight: 15 }} />
+            {item.image_url ? (
+                <Image
+                    source={{ uri: `${BASE_URL}${item.image_url}` }}
+                    style={{ width: 48, height: 48, borderRadius: 24, marginRight: 15 }}
+                />
+            ) : (
+                <Ionicons name="heart" size={30} color="#e05c5c" style={{ marginRight: 15 }} />
+            )}
             <View>
                 <Text style={rabbitsStyles.cardTitle}>{item.name}</Text>
                 <Text style={rabbitsStyles.cardSubtitle}>{item.breed}</Text>
