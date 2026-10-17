@@ -84,6 +84,7 @@ const Rabbits = () => {
                 </View>
             ) : (
                 <FlatList
+                    style={{ width: '100%' }}
                     data={rabbits}
                     keyExtractor={(item) => item.id}
                     renderItem={renderItem}

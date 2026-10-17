@@ -1,6 +1,8 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, StyleSheet, ImageBackground, TextInput, TouchableOpacity, Alert, ScrollView, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, Image, TextInput, TouchableOpacity, Alert, ScrollView, ActivityIndicator, Platform } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { AuthContext } from '../context/AuthContext';
@@ -17,6 +19,7 @@ const AddRabbit = () => {
     const [dateOfBirth, setDateOfBirth] = useState(''); // Format: YYYY-MM-DD
     const [showPicker, setShowPicker] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [imageUri, setImageUri] = useState(null);
 
     const formatDate = (rawDate) => {
         const year = rawDate.getFullYear();
@@ -35,6 +38,23 @@ const AddRabbit = () => {
         }
     };
 
+    const handlePickPhoto = async () => {
+        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permission.granted) {
+            Alert.alert("Permission required", "Camera roll permissions are required to select a photo.");
+            return;
+        }
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+        });
+        if (!result.canceled) {
+            setImageUri(result.assets[0].uri);
+        }
+    };
+
     const handleSubmit = async () => {
         if (!name || !breed || !dateOfBirth) {
             Alert.alert("Validation Error", "Please fill in all fields.");
@@ -42,10 +62,34 @@ const AddRabbit = () => {
         }
         setLoading(true);
         try {
-            await axios.post(`${BASE_URL}/rabbits/`,
+            const response = await axios.post(`${BASE_URL}/rabbits/`,
                 { name, breed, date_of_birth: dateOfBirth },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+
+            const newRabbit = response.data;
+
+            // If an optional image was picked, upload it!
+            if (imageUri) {
+                const formData = new FormData();
+                const filename = imageUri.split('/').pop() || 'photo.jpg';
+                const match = /\.(\w+)$/.exec(filename);
+                const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+                formData.append('file', {
+                    uri: imageUri,
+                    name: filename,
+                    type: type,
+                });
+
+                await axios.post(`${BASE_URL}/rabbits/${newRabbit.id}/photo`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+            }
+
             Alert.alert("Success! 🐇", `${name} has been added!`, [
                 { text: "OK", onPress: () => router.back() }
             ]);
@@ -70,6 +114,32 @@ const AddRabbit = () => {
             />
             <ScrollView contentContainerStyle={styles.container}>
                 <View style={styles.card}>
+                    {/* Optional Photo Picker */}
+                    <View style={styles.avatarSection}>
+                        <TouchableOpacity onPress={handlePickPhoto} style={styles.avatarWrapper} activeOpacity={0.8}>
+                            {imageUri ? (
+                                <Image source={{ uri: imageUri }} style={styles.avatarImage} />
+                            ) : (
+                                <View style={styles.avatarPlaceholder}>
+                                    <Ionicons name="camera-outline" size={38} color="#e05c5c" />
+                                </View>
+                            )}
+                            <View style={styles.cameraIconBadge}>
+                                <Ionicons name={imageUri ? "create-outline" : "add"} size={16} color="#fff" />
+                            </View>
+                        </TouchableOpacity>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                            <Text style={styles.avatarHint}>
+                                {imageUri ? 'Photo selected' : 'Add photo (optional)'}
+                            </Text>
+                            {imageUri && (
+                                <TouchableOpacity onPress={() => setImageUri(null)} style={{ marginLeft: 8 }}>
+                                    <Text style={{ fontSize: 12, color: '#e05c5c', fontWeight: 'bold' }}>Remove</Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                    </View>
+
                     <Text style={styles.label}>Rabbit Name</Text>
                     <TextInput
                         style={styles.input}
@@ -123,6 +193,12 @@ const AddRabbit = () => {
 const styles = StyleSheet.create({
     container: { flexGrow: 1, justifyContent: 'flex-start', alignItems: 'center', padding: 20, paddingTop: 120 },
     card: { backgroundColor: 'rgba(255,255,255,0.93)', borderRadius: 20, padding: 25, width: '100%' },
+    avatarSection: { alignItems: 'center', marginBottom: 15 },
+    avatarWrapper: { position: 'relative', width: 96, height: 96, borderRadius: 48, justifyContent: 'center', alignItems: 'center' },
+    avatarImage: { width: 96, height: 96, borderRadius: 48 },
+    avatarPlaceholder: { width: 96, height: 96, borderRadius: 48, backgroundColor: '#ffeaea', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#e05c5c', borderStyle: 'dashed' },
+    cameraIconBadge: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#e05c5c', width: 28, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fff' },
+    avatarHint: { fontSize: 13, color: '#666', fontWeight: '500' },
     label: { fontSize: 14, fontWeight: '600', color: '#555', marginBottom: 6, marginTop: 14 },
     input: {
         backgroundColor: '#f5f5f5',
