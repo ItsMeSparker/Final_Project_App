@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, images } from '../../constants';
@@ -85,9 +85,7 @@ const Information = () => {
                 options={{
                     headerStyle: { backgroundColor: "#F7F9FC" },
                     headerShadowVisible: false,
-                    headerLeft: () => (
-                        <ScreenHeaderBtn iconUrl={images.profile} dimension="100" />
-                    ),
+                    
                     headerRight: () => (
                         <TouchableOpacity onPress={toggleLang} style={styles.langBtn}>
                             <Ionicons name="language" size={20} color="#e05c5c" />
@@ -107,6 +105,15 @@ const Information = () => {
                 </View>
 
                 <Text style={styles.sectionTitle}>{t.levelsTitle}</Text>
+
+                {/* Stages Overview Image */}
+                <View style={styles.imageCard}>
+                    <Image 
+                        source={images.sorehocksstages} 
+                        style={styles.stageImage} 
+                        resizeMode="contain" 
+                    />
+                </View>
                 
                 <GradeCard 
                     title={t.grade1Title} 
@@ -210,6 +217,23 @@ const styles = StyleSheet.create({
         color: '#2C3E50',
         marginBottom: 15,
         marginLeft: 5,
+    },
+    imageCard: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 12,
+        overflow: 'hidden',
+        marginBottom: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    stageImage: {
+        width: '100%',
+        height: undefined,
+        aspectRatio: 678 / 466,
+        padding: 20
     },
     card: {
         backgroundColor: '#FFFFFF',

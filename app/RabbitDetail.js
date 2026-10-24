@@ -257,10 +257,6 @@ const RabbitDetail = () => {
                         </View>
                     ) : (
                         <View style={{ gap: 12, marginTop: 20 }}>
-                            <TouchableOpacity style={[styles.button, { backgroundColor: '#4A90E2' }]} onPress={() => router.push({ pathname: '/scan', params: { rabbitId: id } })}>
-                                <Ionicons name="scan-circle-outline" size={22} color="#fff" />
-                                <Text style={[styles.buttonText, { marginLeft: 8 }]}>Quick Scan</Text>
-                            </TouchableOpacity>
 
                             <TouchableOpacity style={[styles.button, { backgroundColor: '#e05c5c' }]} onPress={() => setEditing(true)}>
                                 <Ionicons name="pencil-outline" size={18} color="#fff" />
@@ -269,7 +265,7 @@ const RabbitDetail = () => {
                         </View>
                     )}
                 </View>
-
+                
                 {/* Scan Records Section */}
                 <View style={[styles.card, { marginTop: 18, marginBottom: 40 }]}>
                     <View style={styles.historyHeader}>
@@ -338,6 +334,10 @@ const RabbitDetail = () => {
                             })}
                         </View>
                     )}
+                    <TouchableOpacity style={[styles.button, { backgroundColor: '#4A90E2' }]} onPress={() => router.push({ pathname: '/scan', params: { rabbitId: id } })}>
+                        <Ionicons name="scan-circle-outline" size={22} color="#fff" />
+                        <Text style={[styles.buttonText, { marginLeft: 8 }]}>Quick Scan</Text>
+                    </TouchableOpacity>
                 </View>
 
             </ScrollView>
