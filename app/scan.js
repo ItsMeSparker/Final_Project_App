@@ -19,7 +19,7 @@ export default function CameraScreen() {
   const [zoom, setZoom] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [photoUri, setPhotoUri] = useState(null);
-  const [limb, setLimb] = useState('front_left');
+  const [limb, setLimb] = useState('back_left');
   const cameraRef = useRef(null);
   const router = useRouter();
   const [isFocused, setIsFocused] = useState(false);
@@ -151,10 +151,10 @@ export default function CameraScreen() {
           <Text style={styles.limbLabel}>Select Paw:</Text>
           <View style={styles.limbButtonsRow}>
             {[
-              { id: 'front_left', label: 'Front L' },
-              { id: 'front_right', label: 'Front R' },
-              { id: 'back_left', label: 'Back L' },
-              { id: 'back_right', label: 'Back R' }
+              { id: 'back_left', label: 'Back Left' },
+              { id: 'back_right', label: 'Back Right' }
+
+
             ].map((item) => (
               <TouchableOpacity
                 key={item.id}

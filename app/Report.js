@@ -36,7 +36,7 @@ const Report = () => {
     const explanation = scan?.explanation ?? 'Hair loss on the sole, thickened and red skin, but no open wound. Action: Change flooring to soft mats or fleece, and trim nails.';
     const surveillance = scan?.surveillance_period ?? '1–2 weeks';
     const pawImage = scan?.image_url ? `${BASE_URL}${scan.image_url}` : null;
-    const limbText = scan?.limb ? scan.limb.replace('_', ' ').toUpperCase() : 'FRONT LEFT';
+    const limbText = scan?.limb ? scan.limb.replace('_', ' ').toUpperCase() : 'BACK LEFT';
     const confidencePct = scan?.confidence ? `${Math.round(scan.confidence * 100)}%` : null;
 
     return (
