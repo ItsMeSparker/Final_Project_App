@@ -135,7 +135,9 @@ export default function CameraScreen() {
       });
     } catch (error) {
       console.error('Error processing photo:', error);
-      Alert.alert("Scan Failed", error.response?.data?.detail || "Failed to analyze paw photo. Please try again.");
+      if (error.response?.status !== 401) {
+        Alert.alert("Scan Failed", error.response?.data?.detail || "Failed to analyze paw photo. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }

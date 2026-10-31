@@ -24,7 +24,9 @@ const Rabbits = () => {
             });
             setRabbits(response.data);
         } catch (error) {
-            Alert.alert("Error", "Failed to load rabbits.");
+            if (error.response?.status !== 401) {
+                Alert.alert("Error", "Failed to load rabbits.");
+            }
         } finally {
             setLoading(false);
         }

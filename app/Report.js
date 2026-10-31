@@ -119,14 +119,18 @@ const Report = () => {
                     <View style={styles.actionCardsRow}>
                         <TouchableOpacity
                             style={styles.actionCard}
-                            onPress={() => router.push('/weekly')}
+                            onPress={() =>
+                                scan?.rabbit_id
+                                    ? router.push({ pathname: '/SeverityTracking', params: { rabbitId: scan.rabbit_id } })
+                                    : router.replace('/')
+                            }
                             activeOpacity={0.8}
                         >
                             <View style={[styles.actionIconCircle, { backgroundColor: '#EBF5FB' }]}>
-                                <Ionicons name="calendar" size={26} color="#4A90E2" />
+                                <Ionicons name="analytics" size={26} color="#4A90E2" />
                             </View>
                             <Text style={styles.actionCardTitle}>Tracking</Text>
-                            <Text style={styles.actionCardSubtitle}>Weekly Log</Text>
+                            <Text style={styles.actionCardSubtitle}>Severity Timeline</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity

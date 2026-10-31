@@ -95,7 +95,9 @@ const AddRabbit = () => {
             ]);
         } catch (error) {
             console.log(error);
-            Alert.alert("Error", "Failed to add rabbit. Please try again.");
+            if (error.response?.status !== 401) {
+                Alert.alert("Error", "Failed to add rabbit. Please try again.");
+            }
         } finally {
             setLoading(false);
         }

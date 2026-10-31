@@ -83,7 +83,7 @@ const RabbitDetail = () => {
             setRabbit(response.data);
             Alert.alert("Success", "Rabbit photo updated!");
         } catch (error) {
-            Alert.alert("Upload Failed", "Could not upload rabbit photo.");
+            if (error.response?.status !== 401) Alert.alert("Upload Failed", "Could not upload rabbit photo.");
         } finally {
             setUploading(false);
         }
@@ -122,8 +122,8 @@ const RabbitDetail = () => {
                 }
             }
             setScans(scansRes.data);
-        } catch {
-            Alert.alert("Error", "Failed to load rabbit data.");
+        } catch (error) {
+            if (error.response?.status !== 401) Alert.alert("Error", "Failed to load rabbit data.");
         } finally {
             setLoading(false);
             setScansLoading(false);
@@ -148,8 +148,8 @@ const RabbitDetail = () => {
             setRabbit(prev => ({ ...prev, name, breed, date_of_birth: dateOfBirth }));
             setEditing(false);
             setShowPicker(false);
-        } catch {
-            Alert.alert("Error", "Failed to update rabbit.");
+        } catch (error) {
+            if (error.response?.status !== 401) Alert.alert("Error", "Failed to update rabbit.");
         }
     };
 
@@ -164,8 +164,8 @@ const RabbitDetail = () => {
                             headers: { Authorization: `Bearer ${token}` }
                         });
                         router.back();
-                    } catch {
-                        Alert.alert("Error", "Failed to delete rabbit.");
+                    } catch (error) {
+                        if (error.response?.status !== 401) Alert.alert("Error", "Failed to delete rabbit.");
                     }
                 }
             }
@@ -334,6 +334,13 @@ const RabbitDetail = () => {
                             })}
                         </View>
                     )}
+                    <TouchableOpacity
+                        style={[styles.button, { backgroundColor: '#e05c5c', marginTop: 14, marginBottom: 10 }]}
+                        onPress={() => router.push({ pathname: '/SeverityTracking', params: { rabbitId: id, rabbitName: rabbit?.name } })}
+                    >
+                        <Ionicons name="analytics-outline" size={22} color="#fff" />
+                        <Text style={[styles.buttonText, { marginLeft: 8 }]}>Severity Timeline</Text>
+                    </TouchableOpacity>
                     <TouchableOpacity style={[styles.button, { backgroundColor: '#4A90E2' }]} onPress={() => router.push({ pathname: '/scan', params: { rabbitId: id } })}>
                         <Ionicons name="scan-circle-outline" size={22} color="#fff" />
                         <Text style={[styles.buttonText, { marginLeft: 8 }]}>Quick Scan</Text>

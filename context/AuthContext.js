@@ -1,5 +1,6 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import axios from 'axios';
 import api from '../api/axiosInstance';
 
 export const AuthContext = createContext();
@@ -8,25 +9,59 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [token, setToken] = useState(null);
+
+  const logout = useCallback(async () => {
+    await SecureStore.deleteItemAsync('access_token');
+    await SecureStore.deleteItemAsync('refresh_token');
+    setToken(null);
+    setUser(null);
+  }, []);
+
+  // Automatically log out and return to login page whenever any request returns 401
+  useEffect(() => {
+    const handleUnauthorized = async (error) => {
+      const requestUrl = error.config?.url || '';
+      if (error.response?.status === 401 && !requestUrl.includes('/auth/login')) {
+        await logout();
+      }
+      return Promise.reject(error);
+    };
+
+    const axiosInterceptor = axios.interceptors.response.use(
+      (response) => response,
+      handleUnauthorized
+    );
+    const apiInterceptor = api.interceptors.response.use(
+      (response) => response,
+      handleUnauthorized
+    );
+
+    return () => {
+      axios.interceptors.response.eject(axiosInterceptor);
+      api.interceptors.response.eject(apiInterceptor);
+    };
+  }, [logout]);
+
   // Load user on startup
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const token = await SecureStore.getItemAsync('access_token');
-        if (token) {
+        const storedToken = await SecureStore.getItemAsync('access_token');
+        if (storedToken) {
           // Verify token and fetch user details
           const response = await api.get('/auth/me');
           setUser(response.data);
-          setToken(token);
+          setToken(storedToken);
         }
       } catch (error) {
-        console.log('Error loading user', error);
+        console.log('Session expired or invalid on startup, redirecting to login.');
+        await logout();
       } finally {
         setIsLoading(false);
       }
     };
     loadUser();
-  }, []);
+  }, [logout]);
 
   const login = async (email, password) => {
     try {
@@ -64,18 +99,33 @@ export const AuthProvider = ({ children }) => {
       setUser(response.data);
       return { success: true };
     } catch (error) {
+      if (error.response?.status === 401) {
+        return { success: false, unauthorized: true };
+      }
       return { success: false, error: error.response?.data?.detail || 'Failed to update username' };
     }
   };
 
-  const logout = async () => {
-    await SecureStore.deleteItemAsync('access_token');
-    await SecureStore.deleteItemAsync('refresh_token');
-    setUser(null);
-  };
+  const changePassword = async (currentPassword, newPassword) => {
+  try {
+    await api.put('/auth/me/password', {
+      current_password: currentPassword,
+      new_password: newPassword,
+    });
+    return { success: true };
+  } catch (error) {
+    if (error.response?.status === 401) {
+      return { success: false, unauthorized: true };
+    }
+    return {
+      success: false,
+      error: error.response?.data?.detail || 'Failed to update password',
+    };
+  }
+};
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, token, login, signup, updateUsername, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, token, login, signup, updateUsername, changePassword, logout }}>
       {children}
     </AuthContext.Provider>
   );
