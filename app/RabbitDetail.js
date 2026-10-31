@@ -299,7 +299,10 @@ const RabbitDetail = () => {
                                 };
                                 const gc = gradeColors[scan.classification] || gradeColors[1];
                                 const limbName = scan.limb ? scan.limb.replace('_', ' ').toUpperCase() : 'PAW';
-                                const scanDate = scan.analyzed_at ? new Date(scan.analyzed_at).toLocaleDateString() : '';
+                                const parsedScanDate = scan.analyzed_at
+                                    ? new Date(/(Z|[+-]\d{2}:\d{2})$/.test(String(scan.analyzed_at)) ? scan.analyzed_at : `${scan.analyzed_at}Z`)
+                                    : null;
+                                const scanDate = parsedScanDate ? `${parsedScanDate.toLocaleDateString()} ${parsedScanDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : '';
 
                                 return (
                                     <TouchableOpacity

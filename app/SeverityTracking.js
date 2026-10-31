@@ -42,18 +42,25 @@ const getYForGrade = (grade) => {
     return TOP_PAD + ((5 - clamped) / 5) * USABLE_HEIGHT;
 };
 
+const parseLocalDate = (isoString) => {
+    if (!isoString) return null;
+    const str = String(isoString);
+    // If the timestamp from DB has no timezone indicator, treat it as UTC ('Z') so JS converts it to device local timezone
+    const normalized = /(Z|[+-]\d{2}:\d{2})$/.test(str) ? str : `${str}Z`;
+    const d = new Date(normalized);
+    return isNaN(d.getTime()) ? null : d;
+};
+
 const formatShortDate = (isoString) => {
-    if (!isoString) return '';
-    const d = new Date(isoString);
-    if (isNaN(d.getTime())) return '';
+    const d = parseLocalDate(isoString);
+    if (!d) return '';
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return `${d.getDate()} ${monthNames[d.getMonth()]}`;
 };
 
 const formatShortTime = (isoString) => {
-    if (!isoString) return '';
-    const d = new Date(isoString);
-    if (isNaN(d.getTime())) return '';
+    const d = parseLocalDate(isoString);
+    if (!d) return '';
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
@@ -317,7 +324,7 @@ const LimbTimelineCard = ({ limbKey, limbTitle, scans, onSelectReport, onScanNow
                                         </Text>
                                     </View>
                                     <Text style={styles.selectedDateText}>
-                                        {new Date(selectedScan.analyzed_at).toLocaleDateString()} •{' '}
+                                        {parseLocalDate(selectedScan.analyzed_at)?.toLocaleDateString()} •{' '}
                                         {formatShortTime(selectedScan.analyzed_at)}
                                     </Text>
                                 </View>
@@ -730,8 +737,8 @@ const styles = StyleSheet.create({
         marginTop: 1,
     },
     axisLegendRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+        flexDirection: 'column',
+        gap: 2,
         marginTop: 8,
         paddingHorizontal: 4,
     },
