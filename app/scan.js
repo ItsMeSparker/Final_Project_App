@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { useState, useRef, useCallback, useContext } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, Image, Alert, Dimensions } from 'react-native';
+import { useState, useRef, useCallback, useContext, useMemo, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { Button, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, Image, Alert, Dimensions, Animated, PanResponder } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -16,6 +16,238 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const GUIDE_WIDTH = Math.round(SCREEN_WIDTH * 0.65);
 const GUIDE_HEIGHT = Math.round(SCREEN_HEIGHT * 0.48);
 
+const GUIDE_ASPECT = GUIDE_WIDTH / GUIDE_HEIGHT;
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 5;
+const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+
+// Reusable paw alignment guide (used on live camera and on gallery photo review)
+function PawGuideFrame({ width = GUIDE_WIDTH, height = GUIDE_HEIGHT, showSilhouette = true }) {
+  return (
+    <View style={[styles.guideFrame, { width, height }]}>
+      {/* 4 Corner Framing Brackets */}
+      <View style={[styles.cornerBracket, styles.cornerTL]} />
+      <View style={[styles.cornerBracket, styles.cornerTR]} />
+      <View style={[styles.cornerBracket, styles.cornerBL]} />
+      <View style={[styles.cornerBracket, styles.cornerBR]} />
+
+      {/* Tapered Hind Paw Silhouette */}
+      {showSilhouette && (
+      <View style={styles.pawSilhouetteContainer}>
+        {/* Top Label: TOES */}
+        <View style={styles.zonePillTop}>
+          <Text style={styles.zonePillText}>▲ TOES (FOREFOOT)</Text>
+        </View>
+
+        {/* Upper Forefoot / Toes Contour (Wider) */}
+        <View style={styles.pawUpperContour}>
+          <Text style={styles.contourHintText}>Wider Toe Pad</Text>
+        </View>
+
+        {/* Mid-sole Waist Connectors */}
+        <View style={styles.pawWaistRow}>
+          <View style={styles.waistTickLeft} />
+          <Text style={styles.waistLabel}>MID-SOLE</Text>
+          <View style={styles.waistTickRight} />
+        </View>
+
+        {/* Lower Heel / Hock Contour (Narrower) */}
+        <View style={styles.pawLowerContour}>
+          {/* Target Hock Inspection Circle */}
+          <View style={styles.hockTargetZone}>
+            <Text style={styles.hockTargetText}>HOCK</Text>
+          </View>
+        </View>
+
+        {/* Bottom Label: HEEL */}
+        <View style={styles.zonePillBottom}>
+          <Text style={styles.zonePillText}>▼ HEEL / HOCK</Text>
+        </View>
+      </View>
+      )}
+    </View>
+  );
+}
+
+// Gallery photo aligner: the guide stays fixed while the user drags / pinches the photo
+// underneath it. getCrop() returns the area inside the guide as normalized (0–1) coordinates.
+const PawAlignEditor = forwardRef(function PawAlignEditor(
+  { uri, imageWidth, imageHeight, showSilhouette },
+  ref
+) {
+  const containerRef = useRef(null);
+  const originRef = useRef({ x: 0, y: 0 }); // container position in window coords
+  const [layout, setLayout] = useState(null);
+
+  const geo = useMemo(() => {
+    if (!layout || !imageWidth || !imageHeight) return null;
+    // Fit the guide inside the available area while keeping the camera guide's proportions
+    let frameH = Math.min(GUIDE_HEIGHT, layout.height - 70);
+    let frameW = frameH * GUIDE_ASPECT;
+    if (frameW > layout.width - 40) {
+      frameW = layout.width - 40;
+      frameH = frameW / GUIDE_ASPECT;
+    }
+    // At zoom 1 the photo just covers the guide frame
+    const baseScale = Math.max(frameW / imageWidth, frameH / imageHeight);
+    return {
+      containerW: layout.width,
+      containerH: layout.height,
+      frameW,
+      frameH,
+      baseScale,
+      dispW: imageWidth * baseScale,
+      dispH: imageHeight * baseScale,
+    };
+  }, [layout, imageWidth, imageHeight]);
+
+  const geoRef = useRef(null);
+  geoRef.current = geo;
+
+  const translateX = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
+  const scale = useRef(new Animated.Value(1)).current;
+  const current = useRef({ tx: 0, ty: 0, z: 1 });
+  const gesture = useRef({ startTx: 0, startTy: 0, startZ: 1, startX: 0, startY: 0, startDist: 1, touchCount: 0 });
+
+  // Clamp so the photo always fully covers the guide frame, then apply
+  const apply = useCallback((tx, ty, z) => {
+    const g = geoRef.current;
+    if (!g) return;
+    const nz = clamp(z, MIN_ZOOM, MAX_ZOOM);
+    const maxTx = Math.max(0, (g.dispW * nz - g.frameW) / 2);
+    const maxTy = Math.max(0, (g.dispH * nz - g.frameH) / 2);
+    const ntx = clamp(tx, -maxTx, maxTx);
+    const nty = clamp(ty, -maxTy, maxTy);
+    current.current = { tx: ntx, ty: nty, z: nz };
+    translateX.setValue(ntx);
+    translateY.setValue(nty);
+    scale.setValue(nz);
+  }, [translateX, translateY, scale]);
+
+  // Reset alignment whenever a new photo is loaded or the layout changes
+  useEffect(() => {
+    apply(0, 0, 1);
+  }, [uri, geo, apply]);
+
+  const beginGesture = useCallback((touches) => {
+    const g = gesture.current;
+    g.startTx = current.current.tx;
+    g.startTy = current.current.ty;
+    g.startZ = current.current.z;
+    g.touchCount = touches.length;
+    if (touches.length >= 2) {
+      const [a, b] = touches;
+      g.startDist = Math.hypot(a.pageX - b.pageX, a.pageY - b.pageY) || 1;
+      g.startX = (a.pageX + b.pageX) / 2;
+      g.startY = (a.pageY + b.pageY) / 2;
+    } else if (touches.length === 1) {
+      g.startX = touches[0].pageX;
+      g.startY = touches[0].pageY;
+    }
+  }, []);
+
+  const panResponder = useMemo(() => PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderTerminationRequest: () => false,
+    onPanResponderGrant: (evt) => beginGesture(evt.nativeEvent.touches),
+    onPanResponderMove: (evt) => {
+      const touches = evt.nativeEvent.touches;
+      const g = gesture.current;
+      // A finger was added or lifted: re-baseline so the photo doesn't jump
+      if (touches.length !== g.touchCount) {
+        beginGesture(touches);
+        return;
+      }
+      if (touches.length >= 2) {
+        const geoNow = geoRef.current;
+        if (!geoNow) return;
+        const [a, b] = touches;
+        const dist = Math.hypot(a.pageX - b.pageX, a.pageY - b.pageY);
+        const midX = (a.pageX + b.pageX) / 2;
+        const midY = (a.pageY + b.pageY) / 2;
+        const z = clamp(g.startZ * (dist / g.startDist), MIN_ZOOM, MAX_ZOOM);
+        const r = z / g.startZ;
+        // Keep the point under the fingers fixed while zooming
+        const cx = originRef.current.x + geoNow.containerW / 2;
+        const cy = originRef.current.y + geoNow.containerH / 2;
+        const tx = midX - cx - r * (g.startX - cx - g.startTx);
+        const ty = midY - cy - r * (g.startY - cy - g.startTy);
+        apply(tx, ty, z);
+      } else if (touches.length === 1) {
+        apply(
+          g.startTx + (touches[0].pageX - g.startX),
+          g.startTy + (touches[0].pageY - g.startY),
+          g.startZ
+        );
+      }
+    },
+  }), [apply, beginGesture]);
+
+  useImperativeHandle(ref, () => ({
+    getCrop: () => {
+      const g = geoRef.current;
+      if (!g) return null;
+      const { tx, ty, z } = current.current;
+      const s = g.baseScale * z; // screen px per image px
+      const left = (g.dispW * z / 2 - g.frameW / 2 - tx) / s;
+      const top = (g.dispH * z / 2 - g.frameH / 2 - ty) / s;
+      return {
+        x: clamp(left / imageWidth, 0, 1),
+        y: clamp(top / imageHeight, 0, 1),
+        width: clamp(g.frameW / s / imageWidth, 0, 1),
+        height: clamp(g.frameH / s / imageHeight, 0, 1),
+      };
+    },
+    reset: () => apply(0, 0, 1),
+  }), [apply, imageWidth, imageHeight]);
+
+  const onLayout = (e) => {
+    const { width, height } = e.nativeEvent.layout;
+    setLayout({ width, height });
+    containerRef.current?.measureInWindow((x, y) => {
+      originRef.current = { x, y };
+    });
+  };
+
+  return (
+    <View
+      ref={containerRef}
+      style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}
+      onLayout={onLayout}
+      {...panResponder.panHandlers}
+    >
+      {geo && (
+        <>
+          <Animated.Image
+            source={{ uri }}
+            style={{
+              position: 'absolute',
+              width: geo.dispW,
+              height: geo.dispH,
+              left: (geo.containerW - geo.dispW) / 2,
+              top: (geo.containerH - geo.dispH) / 2,
+              transform: [{ translateX }, { translateY }, { scale }],
+            }}
+          />
+
+          {/* Dimmed mask around the guide frame (the area that will be cropped away) */}
+          <View style={StyleSheet.absoluteFill} pointerEvents="none">
+            <View style={[styles.alignMask, { height: (geo.containerH - geo.frameH) / 2 }]} />
+            <View style={{ flexDirection: 'row', height: geo.frameH }}>
+              <View style={[styles.alignMask, { flex: 1 }]} />
+              <PawGuideFrame width={geo.frameW} height={geo.frameH} showSilhouette={showSilhouette} />
+              <View style={[styles.alignMask, { flex: 1 }]} />
+            </View>
+            <View style={[styles.alignMask, { flex: 1 }]} />
+          </View>
+        </>
+      )}
+    </View>
+  );
+});
+
 export default function CameraScreen() {
   const { rabbitId } = useLocalSearchParams();
   const { token } = useContext(AuthContext);
@@ -26,13 +258,20 @@ export default function CameraScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [photoUri, setPhotoUri] = useState(null);
   const [limb, setLimb] = useState('back_left');
+  const [photoSource, setPhotoSource] = useState(null); // 'camera' | 'gallery'
+  const [showGuide, setShowGuide] = useState(true);
+  const [photoSize, setPhotoSize] = useState(null); // { width, height } of gallery photo
+  const alignRef = useRef(null);
   const cameraRef = useRef(null);
+  const isSubmittingRef = useRef(false);
   const router = useRouter();
   const [isFocused, setIsFocused] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       setIsFocused(true);
+      isSubmittingRef.current = false;
+      setIsLoading(false);
       return () => {
         setIsFocused(false);
         setTorch(false);
@@ -45,15 +284,24 @@ export default function CameraScreen() {
   }, []);
 
   const pickImage = async () => {
+    if (isSubmittingRef.current || isLoading) return;
+    // Use quality < 1 so iOS/Android always transcodes HEIC/HEIF gallery photos to standard JPEG
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [3, 4], // Vertical portrait crop matching dataset paw orientation
-      quality: 1,
+      quality: 0.85,
     });
 
     if (!result.canceled) {
-      setPhotoUri(result.assets[0].uri);
+      const asset = result.assets[0];
+      setPhotoSource('gallery');
+      setShowGuide(true);
+      if (asset.width && asset.height) {
+        setPhotoSize({ width: asset.width, height: asset.height });
+      } else {
+        setPhotoSize(null);
+        Image.getSize(asset.uri, (width, height) => setPhotoSize({ width, height }));
+      }
+      setPhotoUri(asset.uri);
     }
   };
 
@@ -96,6 +344,7 @@ export default function CameraScreen() {
         quality: 0.9,
       });
       setTorch(false);
+      setPhotoSource('camera');
       setPhotoUri(photo.uri);
     } catch (error) {
       console.error('Error taking photo:', error);
@@ -105,17 +354,22 @@ export default function CameraScreen() {
   }
 
   function retakePhoto() {
+    if (isSubmittingRef.current) return;
     setPhotoUri(null);
+    setPhotoSource(null);
+    setPhotoSize(null);
   }
 
   async function processAndNavigate() {
-    if (!photoUri) return;
+    if (!photoUri || isSubmittingRef.current || isLoading) return;
     if (!token) {
       Alert.alert("Authentication Error", "You must be logged in to scan.");
       return;
     }
 
+    isSubmittingRef.current = true;
     setIsLoading(true);
+    let succeeded = false;
     try {
       let targetRabbitId = rabbitId;
       if (!targetRabbitId) {
@@ -126,7 +380,6 @@ export default function CameraScreen() {
           targetRabbitId = rabbitsRes.data[0].id;
         } else {
           Alert.alert("No Rabbit Found", "Please create a rabbit profile first before scanning.");
-          setIsLoading(false);
           return;
         }
       }
@@ -144,6 +397,17 @@ export default function CameraScreen() {
       formData.append('rabbit_id', targetRabbitId);
       formData.append('limb', limb);
 
+      // Gallery photos: send the area inside the paw guide so the server crops to it
+      if (photoSource === 'gallery' && alignRef.current) {
+        const crop = alignRef.current.getCrop();
+        if (crop) {
+          formData.append('crop_x', String(crop.x));
+          formData.append('crop_y', String(crop.y));
+          formData.append('crop_w', String(crop.width));
+          formData.append('crop_h', String(crop.height));
+        }
+      }
+
       const response = await axios.post(`${BASE_URL}/scans/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -151,7 +415,8 @@ export default function CameraScreen() {
         }
       });
 
-      router.push({
+      succeeded = true;
+      router.replace({
         pathname: '/Report',
         params: { scanData: JSON.stringify(response.data) }
       });
@@ -161,7 +426,10 @@ export default function CameraScreen() {
         Alert.alert("Scan Failed", error.response?.data?.detail || "Failed to analyze paw photo. Please try again.");
       }
     } finally {
-      setIsLoading(false);
+      if (!succeeded) {
+        isSubmittingRef.current = false;
+        setIsLoading(false);
+      }
     }
   }
 
@@ -174,14 +442,54 @@ export default function CameraScreen() {
             headerStyle: { backgroundColor: '#000' },
             headerTintColor: '#fff',
             headerTitle: 'Review Paw Scan',
+            headerRight: () => null,
           }}
         />
         <View style={styles.previewWrapper}>
-          <Image source={{ uri: photoUri }} style={styles.preview} resizeMode="contain" />
-          <View style={styles.previewCheckBanner}>
-            <Ionicons name="checkmark-circle-outline" size={16} color="#2ECC71" />
+          {photoSource === 'gallery' && photoSize ? (
+            // Draggable / pinchable photo under a fixed paw guide
+            <PawAlignEditor
+              ref={alignRef}
+              uri={photoUri}
+              imageWidth={photoSize.width}
+              imageHeight={photoSize.height}
+              showSilhouette={showGuide}
+            />
+          ) : (
+            <Image source={{ uri: photoUri }} style={styles.preview} resizeMode="contain" />
+          )}
+
+          {photoSource === 'gallery' && photoSize && (
+            <View style={styles.alignToolbar}>
+              <TouchableOpacity
+                style={styles.guideToggleButton}
+                onPress={() => alignRef.current?.reset()}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="scan-outline" size={16} color="#fff" style={{ marginRight: 6 }} />
+                <Text style={styles.guideToggleText}>Reset</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.guideToggleButton}
+                onPress={() => setShowGuide((v) => !v)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name={showGuide ? 'eye-off-outline' : 'eye-outline'} size={16} color="#fff" style={{ marginRight: 6 }} />
+                <Text style={styles.guideToggleText}>{showGuide ? 'Hide Outline' : 'Show Outline'}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <View style={styles.previewCheckBanner} pointerEvents="none">
+            <Ionicons
+              name={photoSource === 'gallery' ? 'move-outline' : 'checkmark-circle-outline'}
+              size={16}
+              color="#2ECC71"
+            />
             <Text style={styles.previewCheckText}>
-              Make sure the full sole (toes to heel) is centered and sharp
+              {photoSource === 'gallery'
+                ? 'Drag & pinch the photo to fit the paw inside the outline'
+                : 'Make sure the full sole (toes to heel) is centered and sharp'}
             </Text>
           </View>
         </View>
@@ -201,6 +509,7 @@ export default function CameraScreen() {
                   limb === item.id && styles.limbButtonActive
                 ]}
                 onPress={() => setLimb(item.id)}
+                disabled={isLoading}
               >
                 <Ionicons
                   name="paw"
@@ -220,17 +529,24 @@ export default function CameraScreen() {
         </View>
 
         <View style={styles.previewButtons}>
-          <TouchableOpacity style={styles.actionButton} onPress={retakePhoto} disabled={isLoading}>
-            <Ionicons name="refresh" size={18} color="#fff" style={{ marginRight: 6 }} />
-            <Text style={styles.buttonText}>Retake</Text>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={photoSource === 'gallery' ? pickImage : retakePhoto}
+            disabled={isLoading}
+          >
+            <Ionicons name={photoSource === 'gallery' ? 'images-outline' : 'refresh'} size={18} color="#fff" style={{ marginRight: 6 }} />
+            <Text style={styles.buttonText}>{photoSource === 'gallery' ? 'Choose Another' : 'Retake'}</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: '#e05c5c' }]}
+            style={[styles.actionButton, { backgroundColor: '#e05c5c' }, isLoading && { opacity: 0.65 }]}
             onPress={processAndNavigate}
             disabled={isLoading}
           >
             {isLoading ? (
-              <ActivityIndicator color="#fff" size="small" />
+              <>
+                <ActivityIndicator color="#fff" size="small" style={{ marginRight: 8 }} />
+                <Text style={styles.buttonText}>Processing...</Text>
+              </>
             ) : (
               <>
                 <Ionicons name="sparkles" size={18} color="#fff" style={{ marginRight: 6 }} />
@@ -303,46 +619,7 @@ export default function CameraScreen() {
           <View style={styles.maskSide} />
 
           {/* Target Guide Frame */}
-          <View style={styles.guideFrame}>
-            {/* 4 Corner Framing Brackets */}
-            <View style={[styles.cornerBracket, styles.cornerTL]} />
-            <View style={[styles.cornerBracket, styles.cornerTR]} />
-            <View style={[styles.cornerBracket, styles.cornerBL]} />
-            <View style={[styles.cornerBracket, styles.cornerBR]} />
-
-            {/* Tapered Hind Paw Silhouette */}
-            <View style={styles.pawSilhouetteContainer}>
-              {/* Top Label: TOES */}
-              <View style={styles.zonePillTop}>
-                <Text style={styles.zonePillText}>▲ TOES (FOREFOOT)</Text>
-              </View>
-
-              {/* Upper Forefoot / Toes Contour (Wider) */}
-              <View style={styles.pawUpperContour}>
-                <Text style={styles.contourHintText}>Wider Toe Pad</Text>
-              </View>
-
-              {/* Mid-sole Waist Connectors */}
-              <View style={styles.pawWaistRow}>
-                <View style={styles.waistTickLeft} />
-                <Text style={styles.waistLabel}>MID-SOLE</Text>
-                <View style={styles.waistTickRight} />
-              </View>
-
-              {/* Lower Heel / Hock Contour (Narrower) */}
-              <View style={styles.pawLowerContour}>
-                {/* Target Hock Inspection Circle */}
-                <View style={styles.hockTargetZone}>
-                  <Text style={styles.hockTargetText}>HOCK</Text>
-                </View>
-              </View>
-
-              {/* Bottom Label: HEEL */}
-              <View style={styles.zonePillBottom}>
-                <Text style={styles.zonePillText}>▼ HEEL / HOCK</Text>
-              </View>
-            </View>
-          </View>
+          <PawGuideFrame />
 
           <View style={styles.maskSide} />
         </View>
@@ -687,6 +964,31 @@ const styles = StyleSheet.create({
   preview: {
     flex: 1,
     width: '100%',
+  },
+  alignMask: {
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+  },
+  alignToolbar: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  guideToggleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  guideToggleText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   previewCheckBanner: {
     position: 'absolute',
