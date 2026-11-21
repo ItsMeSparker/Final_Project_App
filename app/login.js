@@ -34,7 +34,7 @@ export default function Login() {
         <Text style={styles.title}>Welcome Back</Text>
       <TextInput
         style={styles.input}
-        placeholder="Email"
+        placeholder="Email or Username"
         placeholderTextColor="#686868" 
         value={email}
         onChangeText={setEmail}

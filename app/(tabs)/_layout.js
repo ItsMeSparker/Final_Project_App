@@ -29,17 +29,6 @@ export default function TabLayout() {
                 }}
             />
 
-            {/* 2. Quick Scan */}
-            <Tabs.Screen
-                name="scan"
-                options={{
-                    title: 'Quick Scan',
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="scan-circle-outline" size={size} color={color} />
-                    ),
-                }}
-            />
-
             {/* 3. Weekly Report */}
             <Tabs.Screen
                 name="weekly"
