@@ -14,15 +14,16 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Guide frame dimensions matching the close-up vertical paw proportions in the dataset
 const GUIDE_WIDTH = Math.round(SCREEN_WIDTH * 0.65);
-const GUIDE_HEIGHT = Math.round(SCREEN_HEIGHT * 0.48);
+const GUIDE_HEIGHT = Math.round(SCREEN_HEIGHT * 0.55);
 
 const GUIDE_ASPECT = GUIDE_WIDTH / GUIDE_HEIGHT;
-const MIN_ZOOM = 1;
+const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 5;
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 
-// Reusable paw alignment guide (used on live camera and on gallery photo review)
+// Reusable paw alignment guide (used on live camera and on gallery photo crop)
 function PawGuideFrame({ width = GUIDE_WIDTH, height = GUIDE_HEIGHT, showSilhouette = true }) {
+  const silhouetteScale = Math.min(width / GUIDE_WIDTH, height / GUIDE_HEIGHT, 1);
   return (
     <View style={[styles.guideFrame, { width, height }]}>
       {/* 4 Corner Framing Brackets */}
@@ -33,46 +34,102 @@ function PawGuideFrame({ width = GUIDE_WIDTH, height = GUIDE_HEIGHT, showSilhoue
 
       {/* Tapered Hind Paw Silhouette */}
       {showSilhouette && (
-      <View style={styles.pawSilhouetteContainer}>
-        {/* Top Label: TOES */}
-        <View style={styles.zonePillTop}>
-          <Text style={styles.zonePillText}>▲ TOES (FOREFOOT)</Text>
-        </View>
+        <View
+          style={[
+            styles.pawSilhouetteContainer,
+            silhouetteScale < 1 && {
+              width: GUIDE_WIDTH * 0.9,
+              height: GUIDE_HEIGHT * 0.93,
+              transform: [{ scale: silhouetteScale }],
+            },
+          ]}
+        >
+          {/* Top Label: TOES */}
+          <View style={styles.zonePillTop}>
+            <Text style={styles.zonePillText}>▲ TOES (FOREFOOT)</Text>
+          </View>
 
-        {/* Upper Forefoot / Toes Contour (Wider) */}
-        <View style={styles.pawUpperContour}>
-          <Text style={styles.contourHintText}>Wider Toe Pad</Text>
-        </View>
+          {/* Upper Forefoot / Toes Contour (Wider) */}
+          <View style={styles.pawUpperContour}>
+            <Text style={styles.contourHintText}>Wider Toe Pad</Text>
+          </View>
 
-        {/* Mid-sole Waist Connectors */}
-        <View style={styles.pawWaistRow}>
-          <View style={styles.waistTickLeft} />
-          <Text style={styles.waistLabel}>MID-SOLE</Text>
-          <View style={styles.waistTickRight} />
-        </View>
+          {/* Mid-sole Waist Connectors */}
+          <View style={styles.pawWaistRow}>
+            <View style={styles.waistTickLeft} />
+            <Text style={styles.waistLabel}>MID-SOLE</Text>
+            <View style={styles.waistTickRight} />
+          </View>
 
-        {/* Lower Heel / Hock Contour (Narrower) */}
-        <View style={styles.pawLowerContour}>
-          {/* Target Hock Inspection Circle */}
-          <View style={styles.hockTargetZone}>
-            <Text style={styles.hockTargetText}>HOCK</Text>
+          {/* Lower Heel / Hock Contour (Narrower) */}
+          <View style={styles.pawLowerContour}>
+            {/* Target Hock Inspection Circle */}
+            <View style={styles.hockTargetZone}>
+              <Text style={styles.hockTargetText}>HOCK</Text>
+            </View>
+          </View>
+
+          {/* Bottom Label: HEEL */}
+          <View style={styles.zonePillBottom}>
+            <Text style={styles.zonePillText}>▼ HEEL / HOCK</Text>
           </View>
         </View>
+      )}
+    </View>
+  );
+}
 
-        {/* Bottom Label: HEEL */}
-        <View style={styles.zonePillBottom}>
-          <Text style={styles.zonePillText}>▼ HEEL / HOCK</Text>
+// Renders the confirmed cropped paw area inside a clean preview frame
+function CroppedPawPreview({ uri, cropRect }) {
+  const [layout, setLayout] = useState(null);
+
+  const box = useMemo(() => {
+    if (!layout || !cropRect) return null;
+    const availW = Math.max(layout.width - 32, 100);
+    const availH = Math.max(layout.height - 56, 100);
+    let boxH = Math.min(GUIDE_HEIGHT, availH);
+    let boxW = boxH * GUIDE_ASPECT;
+    if (boxW > availW) {
+      boxW = availW;
+      boxH = boxW / GUIDE_ASPECT;
+    }
+    const renderedImgW = boxW / Math.max(cropRect.width, 0.01);
+    const renderedImgH = boxH / Math.max(cropRect.height, 0.01);
+    const left = -cropRect.x * renderedImgW;
+    const top = -cropRect.y * renderedImgH;
+    return { boxW, boxH, renderedImgW, renderedImgH, left, top };
+  }, [layout, cropRect]);
+
+  return (
+    <View
+      style={styles.croppedPreviewContainer}
+      onLayout={(e) => {
+        const { width, height } = e.nativeEvent.layout;
+        setLayout({ width, height });
+      }}
+    >
+      {box && (
+        <View style={[styles.croppedFrameBox, { width: box.boxW, height: box.boxH }]}>
+          <Image
+            source={{ uri }}
+            style={{
+              position: 'absolute',
+              width: box.renderedImgW,
+              height: box.renderedImgH,
+              left: box.left,
+              top: box.top,
+            }}
+          />
         </View>
-      </View>
       )}
     </View>
   );
 }
 
 // Gallery photo aligner: the guide stays fixed while the user drags / pinches the photo
-// underneath it. getCrop() returns the area inside the guide as normalized (0–1) coordinates.
+// underneath it. getCrop() returns the area inside the guide as normalized coordinates.
 const PawAlignEditor = forwardRef(function PawAlignEditor(
-  { uri, imageWidth, imageHeight, showSilhouette },
+  { uri, imageWidth, imageHeight, showSilhouette, initialTransform, onZoomChange },
   ref
 ) {
   const containerRef = useRef(null);
@@ -82,10 +139,10 @@ const PawAlignEditor = forwardRef(function PawAlignEditor(
   const geo = useMemo(() => {
     if (!layout || !imageWidth || !imageHeight) return null;
     // Fit the guide inside the available area while keeping the camera guide's proportions
-    let frameH = Math.min(GUIDE_HEIGHT, layout.height - 70);
+    let frameH = Math.min(GUIDE_HEIGHT, layout.height - 64);
     let frameW = frameH * GUIDE_ASPECT;
-    if (frameW > layout.width - 40) {
-      frameW = layout.width - 40;
+    if (frameW > layout.width - 36) {
+      frameW = layout.width - 36;
       frameH = frameW / GUIDE_ASPECT;
     }
     // At zoom 1 the photo just covers the guide frame
@@ -110,25 +167,33 @@ const PawAlignEditor = forwardRef(function PawAlignEditor(
   const current = useRef({ tx: 0, ty: 0, z: 1 });
   const gesture = useRef({ startTx: 0, startTy: 0, startZ: 1, startX: 0, startY: 0, startDist: 1, touchCount: 0 });
 
-  // Clamp so the photo always fully covers the guide frame, then apply
-  const apply = useCallback((tx, ty, z) => {
+  // Clamp so the user can freely align any part of the paw inside the guide frame
+  const apply = useCallback((tx, ty, z, notifyZoom = true) => {
     const g = geoRef.current;
     if (!g) return;
     const nz = clamp(z, MIN_ZOOM, MAX_ZOOM);
-    const maxTx = Math.max(0, (g.dispW * nz - g.frameW) / 2);
-    const maxTy = Math.max(0, (g.dispH * nz - g.frameH) / 2);
+    const maxTx = Math.max(g.frameW * 0.35, (g.dispW * nz - g.frameW) / 2 + g.frameW * 0.25);
+    const maxTy = Math.max(g.frameH * 0.35, (g.dispH * nz - g.frameH) / 2 + g.frameH * 0.25);
     const ntx = clamp(tx, -maxTx, maxTx);
     const nty = clamp(ty, -maxTy, maxTy);
     current.current = { tx: ntx, ty: nty, z: nz };
     translateX.setValue(ntx);
     translateY.setValue(nty);
     scale.setValue(nz);
-  }, [translateX, translateY, scale]);
+    if (notifyZoom && onZoomChange) {
+      onZoomChange(nz);
+    }
+  }, [translateX, translateY, scale, onZoomChange]);
 
-  // Reset alignment whenever a new photo is loaded or the layout changes
+  // Initialize or restore alignment whenever the photo or layout changes
   useEffect(() => {
-    apply(0, 0, 1);
-  }, [uri, geo, apply]);
+    if (!geo) return;
+    if (initialTransform) {
+      apply(initialTransform.tx, initialTransform.ty, initialTransform.z);
+    } else {
+      apply(0, 0, 1);
+    }
+  }, [uri, geo, initialTransform, apply]);
 
   const beginGesture = useCallback((touches) => {
     const g = gesture.current;
@@ -151,7 +216,14 @@ const PawAlignEditor = forwardRef(function PawAlignEditor(
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
     onPanResponderTerminationRequest: () => false,
-    onPanResponderGrant: (evt) => beginGesture(evt.nativeEvent.touches),
+    onPanResponderGrant: (evt) => {
+      containerRef.current?.measureInWindow((x, y) => {
+        if (typeof x === 'number' && typeof y === 'number') {
+          originRef.current = { x, y };
+        }
+      });
+      beginGesture(evt.nativeEvent.touches);
+    },
     onPanResponderMove: (evt) => {
       const touches = evt.nativeEvent.touches;
       const g = gesture.current;
@@ -194,11 +266,18 @@ const PawAlignEditor = forwardRef(function PawAlignEditor(
       const left = (g.dispW * z / 2 - g.frameW / 2 - tx) / s;
       const top = (g.dispH * z / 2 - g.frameH / 2 - ty) / s;
       return {
-        x: clamp(left / imageWidth, 0, 1),
-        y: clamp(top / imageHeight, 0, 1),
-        width: clamp(g.frameW / s / imageWidth, 0, 1),
-        height: clamp(g.frameH / s / imageHeight, 0, 1),
+        x: clamp(left / imageWidth, -0.5, 1),
+        y: clamp(top / imageHeight, -0.5, 1),
+        width: clamp(g.frameW / s / imageWidth, 0.05, 2),
+        height: clamp(g.frameH / s / imageHeight, 0.05, 2),
       };
+    },
+    getTransform: () => ({ ...current.current }),
+    setZoom: (nextZoom, notify = true) => {
+      const prev = current.current;
+      const nz = clamp(nextZoom, MIN_ZOOM, MAX_ZOOM);
+      const r = prev.z > 0 ? nz / prev.z : 1;
+      apply(prev.tx * r, prev.ty * r, nz, notify);
     },
     reset: () => apply(0, 0, 1),
   }), [apply, imageWidth, imageHeight]);
@@ -207,7 +286,9 @@ const PawAlignEditor = forwardRef(function PawAlignEditor(
     const { width, height } = e.nativeEvent.layout;
     setLayout({ width, height });
     containerRef.current?.measureInWindow((x, y) => {
-      originRef.current = { x, y };
+      if (typeof x === 'number' && typeof y === 'number') {
+        originRef.current = { x, y };
+      }
     });
   };
 
@@ -220,17 +301,25 @@ const PawAlignEditor = forwardRef(function PawAlignEditor(
     >
       {geo && (
         <>
-          <Animated.Image
-            source={{ uri }}
+          <Animated.View
             style={{
               position: 'absolute',
               width: geo.dispW,
               height: geo.dispH,
               left: (geo.containerW - geo.dispW) / 2,
               top: (geo.containerH - geo.dispH) / 2,
-              transform: [{ translateX }, { translateY }, { scale }],
+              transform: [{ translateX }, { translateY }],
             }}
-          />
+          >
+            <Animated.Image
+              source={{ uri }}
+              style={{
+                width: geo.dispW,
+                height: geo.dispH,
+                transform: [{ scale }],
+              }}
+            />
+          </Animated.View>
 
           {/* Dimmed mask around the guide frame (the area that will be cropped away) */}
           <View style={StyleSheet.absoluteFill} pointerEvents="none">
@@ -261,6 +350,10 @@ export default function CameraScreen() {
   const [photoSource, setPhotoSource] = useState(null); // 'camera' | 'gallery'
   const [showGuide, setShowGuide] = useState(true);
   const [photoSize, setPhotoSize] = useState(null); // { width, height } of gallery photo
+  const [isCropping, setIsCropping] = useState(false);
+  const [cropRect, setCropRect] = useState(null); // confirmed normalized { x, y, width, height }
+  const [cropTransform, setCropTransform] = useState(null); // saved { tx, ty, z } for re-editing
+  const [cropZoom, setCropZoom] = useState(1);
   const alignRef = useRef(null);
   const cameraRef = useRef(null);
   const isSubmittingRef = useRef(false);
@@ -285,6 +378,11 @@ export default function CameraScreen() {
 
   const pickImage = async () => {
     if (isSubmittingRef.current || isLoading) return;
+    const mediaPerm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!mediaPerm.granted) {
+      Alert.alert('Permission Required', 'Photo library access is needed to choose a paw picture.');
+      return;
+    }
     // Use quality < 1 so iOS/Android always transcodes HEIC/HEIF gallery photos to standard JPEG
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
@@ -295,15 +393,59 @@ export default function CameraScreen() {
       const asset = result.assets[0];
       setPhotoSource('gallery');
       setShowGuide(true);
+      setIsCropping(true);
+      setCropRect(null);
+      setCropTransform(null);
+      setCropZoom(1);
+
       if (asset.width && asset.height) {
         setPhotoSize({ width: asset.width, height: asset.height });
       } else {
         setPhotoSize(null);
-        Image.getSize(asset.uri, (width, height) => setPhotoSize({ width, height }));
       }
+      // Always verify actual rendered dimensions with Image.getSize (accounts for EXIF orientation)
+      Image.getSize(
+        asset.uri,
+        (width, height) => {
+          if (width && height) {
+            setPhotoSize({ width, height });
+          }
+        },
+        () => {}
+      );
       setPhotoUri(asset.uri);
     }
   };
+
+  function handleApplyCrop() {
+    if (!alignRef.current) return;
+    const rect = alignRef.current.getCrop();
+    const transform = alignRef.current.getTransform();
+    if (rect) {
+      setCropRect(rect);
+      setCropTransform(transform);
+      setIsCropping(false);
+    }
+  }
+
+  function handleEditCrop() {
+    if (isSubmittingRef.current || isLoading) return;
+    if (cropTransform?.z) {
+      setCropZoom(cropTransform.z);
+    }
+    setIsCropping(true);
+  }
+
+  function handleCropZoomSlider(value) {
+    setCropZoom(value);
+    alignRef.current?.setZoom(value, false);
+  }
+
+  function stepCropZoom(delta) {
+    const next = clamp(Math.round((cropZoom + delta) * 10) / 10, MIN_ZOOM, MAX_ZOOM);
+    setCropZoom(next);
+    alignRef.current?.setZoom(next, false);
+  }
 
   if (!isFocused) {
     return <View style={styles.container} />;
@@ -345,6 +487,9 @@ export default function CameraScreen() {
       });
       setTorch(false);
       setPhotoSource('camera');
+      setIsCropping(false);
+      setCropRect(null);
+      setCropTransform(null);
       setPhotoUri(photo.uri);
     } catch (error) {
       console.error('Error taking photo:', error);
@@ -358,6 +503,9 @@ export default function CameraScreen() {
     setPhotoUri(null);
     setPhotoSource(null);
     setPhotoSize(null);
+    setIsCropping(false);
+    setCropRect(null);
+    setCropTransform(null);
   }
 
   async function processAndNavigate() {
@@ -397,9 +545,9 @@ export default function CameraScreen() {
       formData.append('rabbit_id', targetRabbitId);
       formData.append('limb', limb);
 
-      // Gallery photos: send the area inside the paw guide so the server crops to it
-      if (photoSource === 'gallery' && alignRef.current) {
-        const crop = alignRef.current.getCrop();
+      // Gallery photos: send the confirmed crop coordinates (or live editor coordinates) so the server crops to it
+      if (photoSource === 'gallery') {
+        const crop = cropRect || alignRef.current?.getCrop();
         if (crop) {
           formData.append('crop_x', String(crop.x));
           formData.append('crop_y', String(crop.y));
@@ -433,40 +581,43 @@ export default function CameraScreen() {
     }
   }
 
-  // 1. POST-CAPTURE PREVIEW SCREEN (with Limb Selector)
-  if (photoUri) {
+  // 1A. GALLERY CROP & ALIGNMENT STEP
+  if (photoUri && photoSource === 'gallery' && isCropping) {
     return (
       <SafeAreaView style={styles.container}>
         <Stack.Screen
           options={{
             headerStyle: { backgroundColor: '#000' },
             headerTintColor: '#fff',
-            headerTitle: 'Review Paw Scan',
+            headerTitle: 'Crop Paw Photo',
             headerRight: () => null,
           }}
         />
         <View style={styles.previewWrapper}>
-          {photoSource === 'gallery' && photoSize ? (
-            // Draggable / pinchable photo under a fixed paw guide
+          {photoSize ? (
             <PawAlignEditor
               ref={alignRef}
               uri={photoUri}
               imageWidth={photoSize.width}
               imageHeight={photoSize.height}
               showSilhouette={showGuide}
+              initialTransform={cropTransform}
+              onZoomChange={setCropZoom}
             />
           ) : (
-            <Image source={{ uri: photoUri }} style={styles.preview} resizeMode="contain" />
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <ActivityIndicator size="large" color="#e05c5c" />
+            </View>
           )}
 
-          {photoSource === 'gallery' && photoSize && (
+          {photoSize && (
             <View style={styles.alignToolbar}>
               <TouchableOpacity
                 style={styles.guideToggleButton}
                 onPress={() => alignRef.current?.reset()}
                 activeOpacity={0.8}
               >
-                <Ionicons name="scan-outline" size={16} color="#fff" style={{ marginRight: 6 }} />
+                <Ionicons name="refresh-outline" size={16} color="#fff" style={{ marginRight: 6 }} />
                 <Text style={styles.guideToggleText}>Reset</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -481,20 +632,111 @@ export default function CameraScreen() {
           )}
 
           <View style={styles.previewCheckBanner} pointerEvents="none">
+            <Ionicons name="move-outline" size={16} color="#2ECC71" />
+            <Text style={styles.previewCheckText}>
+              Drag & pinch or use slider to fit the paw inside the outline
+            </Text>
+          </View>
+        </View>
+
+        {/* Zoom Slider Bar for effortless one-handed zoom in/out */}
+        <View style={styles.cropZoomBar}>
+          <TouchableOpacity
+            style={styles.zoomStepButton}
+            onPress={() => stepCropZoom(-0.25)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="remove" size={18} color="#fff" />
+          </TouchableOpacity>
+          <Slider
+            style={styles.cropZoomSlider}
+            minimumValue={MIN_ZOOM}
+            maximumValue={MAX_ZOOM}
+            value={cropZoom}
+            onValueChange={handleCropZoomSlider}
+            minimumTrackTintColor="#e05c5c"
+            maximumTrackTintColor="rgba(255,255,255,0.28)"
+            thumbTintColor="#fff"
+          />
+          <TouchableOpacity
+            style={styles.zoomStepButton}
+            onPress={() => stepCropZoom(0.25)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="add" size={18} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.cropZoomReadout}>{cropZoom.toFixed(1)}x</Text>
+        </View>
+
+        <View style={styles.previewButtons}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={pickImage}
+          >
+            <Ionicons name="images-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
+            <Text style={styles.buttonText}>Choose Another</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: '#e05c5c' }, !photoSize && { opacity: 0.65 }]}
+            onPress={handleApplyCrop}
+            disabled={!photoSize}
+          >
+            <Ionicons name="crop" size={18} color="#fff" style={{ marginRight: 6 }} />
+            <Text style={styles.buttonText}>Apply Crop</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // 1B. POST-CAPTURE / POST-CROP REVIEW SCREEN (with Limb Selector)
+  if (photoUri) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Stack.Screen
+          options={{
+            headerStyle: { backgroundColor: '#000' },
+            headerTintColor: '#fff',
+            headerTitle: 'Review Paw Scan',
+            headerRight: () => null,
+          }}
+        />
+        <View style={styles.previewWrapper}>
+          {photoSource === 'gallery' && cropRect ? (
+            <CroppedPawPreview uri={photoUri} cropRect={cropRect} />
+          ) : (
+            <Image source={{ uri: photoUri }} style={styles.preview} resizeMode="contain" />
+          )}
+
+          {photoSource === 'gallery' && cropRect && (
+            <View style={styles.alignToolbar}>
+              <TouchableOpacity
+                style={styles.guideToggleButton}
+                onPress={handleEditCrop}
+                disabled={isLoading}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="crop-outline" size={16} color="#fff" style={{ marginRight: 6 }} />
+                <Text style={styles.guideToggleText}>Edit Crop</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <View style={styles.previewCheckBanner} pointerEvents="none">
             <Ionicons
-              name={photoSource === 'gallery' ? 'move-outline' : 'checkmark-circle-outline'}
+              name="checkmark-circle-outline"
               size={16}
               color="#2ECC71"
             />
             <Text style={styles.previewCheckText}>
               {photoSource === 'gallery'
-                ? 'Drag & pinch the photo to fit the paw inside the outline'
+                ? 'Cropped to paw guide • Select limb below to analyze'
                 : 'Make sure the full sole (toes to heel) is centered and sharp'}
             </Text>
           </View>
         </View>
 
-        {/* Limb selection selector (appears after taking picture) */}
+        {/* Limb selection selector (appears after taking or cropping picture) */}
         <View style={styles.limbSelectorContainer}>
           <Text style={styles.limbLabel}>Select Which Hind Paw Was Scanned:</Text>
           <View style={styles.limbButtonsRow}>
@@ -964,6 +1206,49 @@ const styles = StyleSheet.create({
   preview: {
     flex: 1,
     width: '100%',
+  },
+  croppedPreviewContainer: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  croppedFrameBox: {
+    overflow: 'hidden',
+    borderRadius: 16,
+    backgroundColor: '#000',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.28)',
+  },
+  cropZoomBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: '#141414',
+    borderTopWidth: 1,
+    borderTopColor: '#262626',
+  },
+  zoomStepButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#262626',
+    borderWidth: 1,
+    borderColor: '#3a3a3a',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cropZoomSlider: {
+    flex: 1,
+    marginHorizontal: 8,
+  },
+  cropZoomReadout: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: 'bold',
+    width: 44,
+    textAlign: 'right',
   },
   alignMask: {
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
