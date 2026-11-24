@@ -12,6 +12,10 @@ import { AuthContext } from '../context/AuthContext';
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
+const Paw = require('../assets/images/paw.png');
+const Camera = require('../assets/images/Camera_Pixel.png');
+const RabbitIcon = require('../assets/images/Bunny_Logo.png');
+
 // Guide frame dimensions matching the close-up vertical paw proportions in the dataset
 const GUIDE_WIDTH = Math.round(SCREEN_WIDTH * 0.65);
 const GUIDE_HEIGHT = Math.round(SCREEN_HEIGHT * 0.55);
@@ -606,7 +610,7 @@ export default function CameraScreen() {
             />
           ) : (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-              <ActivityIndicator size="large" color="#e05c5c" />
+              <ActivityIndicator size="large" color="#1B4079" />
             </View>
           )}
 
@@ -654,7 +658,7 @@ export default function CameraScreen() {
             maximumValue={MAX_ZOOM}
             value={cropZoom}
             onValueChange={handleCropZoomSlider}
-            minimumTrackTintColor="#e05c5c"
+            minimumTrackTintColor="#1B4079"
             maximumTrackTintColor="rgba(255,255,255,0.28)"
             thumbTintColor="#fff"
           />
@@ -753,12 +757,7 @@ export default function CameraScreen() {
                 onPress={() => setLimb(item.id)}
                 disabled={isLoading}
               >
-                <Ionicons
-                  name="paw"
-                  size={15}
-                  color={limb === item.id ? '#fff' : '#bbb'}
-                  style={{ marginRight: 6 }}
-                />
+                <Image source={Paw} style = {{width: 16, height: 16, marginRight: 6}} resizeMode="contain"/>
                 <Text style={[
                   styles.limbButtonText,
                   limb === item.id && styles.limbButtonTextActive
@@ -776,11 +775,11 @@ export default function CameraScreen() {
             onPress={photoSource === 'gallery' ? pickImage : retakePhoto}
             disabled={isLoading}
           >
-            <Ionicons name={photoSource === 'gallery' ? 'images-outline' : 'refresh'} size={18} color="#fff" style={{ marginRight: 6 }} />
+            <Image source={Camera} style = {{width: 20, height: 20, marginRight: 6}} resizeMode="center" />
             <Text style={styles.buttonText}>{photoSource === 'gallery' ? 'Choose Another' : 'Retake'}</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: '#e05c5c' }, isLoading && { opacity: 0.65 }]}
+            style={[styles.actionButton, { backgroundColor: '#1B4079' }, isLoading && { opacity: 0.65 }]}
             onPress={processAndNavigate}
             disabled={isLoading}
           >
@@ -791,7 +790,7 @@ export default function CameraScreen() {
               </>
             ) : (
               <>
-                <Ionicons name="sparkles" size={18} color="#fff" style={{ marginRight: 6 }} />
+                <Image source={RabbitIcon} style = {{width: 20, height: 20, marginRight: 6}} resizeMode="center" />
                 <Text style={styles.buttonText}>Process Scan</Text>
               </>
             )}
@@ -804,7 +803,7 @@ export default function CameraScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#e05c5c" />
+        <ActivityIndicator size="large" color="#1B4079" />
         <Text style={{ marginTop: 10, color: '#333', fontWeight: '600' }}>Capturing...</Text>
       </SafeAreaView>
     );
@@ -849,7 +848,7 @@ export default function CameraScreen() {
         {/* Top dimmed area + Instruction Pill */}
         <View style={styles.maskTop} pointerEvents="none">
           <View style={styles.instructionBanner}>
-            <Ionicons name="paw" size={16} color="#FFE0E0" style={{ marginRight: 8 }} />
+            <Image source={Paw} style = {{width: 20, height: 20, marginRight: 8}} resizeMode="contain"/>
             <Text style={styles.instructionText}>
               Point <Text style={styles.instructionHighlight}>TOES UP</Text> & fill the foot outline
             </Text>
@@ -885,7 +884,7 @@ export default function CameraScreen() {
                 maximumValue={1}
                 value={zoom}
                 onValueChange={handleZoomChange}
-                minimumTrackTintColor="#e05c5c"
+                minimumTrackTintColor="#1B4079"
                 maximumTrackTintColor="rgba(255,255,255,0.3)"
                 thumbTintColor="#fff"
               />
@@ -947,7 +946,7 @@ const styles = StyleSheet.create({
   instructionBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(224, 92, 92, 0.92)',
+    backgroundColor: '#1B4079',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
@@ -1048,7 +1047,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   zonePillBottom: {
-    backgroundColor: 'rgba(224, 92, 92, 0.9)',
+    backgroundColor: '#1B4079',
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 10,
@@ -1124,14 +1123,14 @@ const styles = StyleSheet.create({
     height: 68,
     borderRadius: 34,
     borderWidth: 1.5,
-    borderColor: 'rgba(224, 92, 92, 0.95)',
+    borderColor: '#1B4079',
     borderStyle: 'dashed',
-    backgroundColor: 'rgba(224, 92, 92, 0.16)',
+    backgroundColor: '#a7b9d438',
     justifyContent: 'center',
     alignItems: 'center',
   },
   hockTargetText: {
-    color: '#FFE0E0',
+    color: '#A7B9D4',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.9,
@@ -1177,7 +1176,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: 'rgba(224, 92, 92, 0.45)',
+    backgroundColor: '#A7B9D4',
     borderWidth: 3,
     borderColor: '#fff',
     justifyContent: 'center',
@@ -1321,8 +1320,8 @@ const styles = StyleSheet.create({
     borderColor: '#444',
   },
   limbButtonActive: {
-    backgroundColor: '#e05c5c',
-    borderColor: '#e05c5c',
+    backgroundColor: '#A7B9D4',
+    borderColor: '#1B4079',
   },
   limbButtonText: {
     color: '#bbb',

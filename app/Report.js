@@ -6,6 +6,16 @@ import { Ionicons } from '@expo/vector-icons';
 const { width } = Dimensions.get('window');
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 const background = require('../assets/images/Background_1.png');
+const Bunny = require('../assets/images/Bunny_Logo.png');
+const Document = require('../assets/images/document.png');
+const Calandar = require('../assets/images/Calendar_Pixel.png'); 
+const Back = require('../assets/images/Back.png'); 
+const Paw = require('../assets/images/paw.png');
+const Alert = require('../assets/images/Alert_Pixel.png');
+const Clock = require('../assets/images/clock.png');
+//const Yale_Button = require('../assets/images/yale.png');
+//const AirForce_Button = require('../assets/images/airforce.png');
+//const Cambridge_Button = require('../assets/images/cambridge.png');
 
 const GRADE_CONFIG = {
     0: { color: '#2ECC71', bg: '#E8F8F0', risk: 'None', label: 'Healthy Paw' },
@@ -65,12 +75,12 @@ const Report = () => {
                             <Image source={{ uri: pawImage }} style={styles.pawImage} />
                         ) : (
                             <View style={styles.placeholderImage}>
-                                <Ionicons name="paw" size={60} color="#e05c5c" />
+                                <Image source={Paw} style = {{width: 60, height: 60}} resizeMode="contain"/>
                             </View>
                         )}
                         <View style={styles.imageOverlayBadges}>
                             <View style={styles.limbBadge}>
-                                <Ionicons name="paw" size={14} color="#fff" style={{ marginRight: 5 }} />
+                                <Image source={Paw} style = {{width: 16, height: 16, marginRight: 6}} resizeMode="contain"/>
                                 <Text style={styles.limbBadgeText}>{limbText} PAW</Text>
                             </View>
                             {confidencePct && (
@@ -100,14 +110,14 @@ const Report = () => {
 
                         {/* Clinical Assessment */}
                         <View style={styles.sectionHeaderRow}>
-                            <Ionicons name="medical-outline" size={18} color="#555" />
+                            <Image source={Alert} style = {{width: 18, height: 18}} resizeMode="contain"/>
                             <Text style={styles.sectionHeader}>CLINICAL ASSESSMENT</Text>
                         </View>
                         <Text style={styles.explanationText}>{explanation}</Text>
 
                         {/* Surveillance Period Box */}
                         <View style={styles.surveillanceBox}>
-                            <Ionicons name="time-outline" size={24} color="#e05c5c" style={{ marginRight: 12 }} />
+                            <Image source={Clock} style = {{width: 24, height: 24, marginRight: 12}} resizeMode="contain"/>
                             <View style={{ flex: 1 }}>
                                 <Text style={styles.surveillanceLabel}>Recommended Surveillance</Text>
                                 <Text style={styles.surveillanceValue}>{surveillance}</Text>
@@ -126,8 +136,8 @@ const Report = () => {
                             }
                             activeOpacity={0.8}
                         >
-                            <View style={[styles.actionIconCircle, { backgroundColor: '#EBF5FB' }]}>
-                                <Ionicons name="analytics" size={26} color="#4A90E2" />
+                            <View style={[styles.actionIconCircle, { backgroundColor: '#9FBFB8' }]}>
+                                <Image source={Calandar} style = {{width: 24, height: 24}} resizeMode="contain"/>
                             </View>
                             <Text style={styles.actionCardTitle}>Tracking</Text>
                             <Text style={styles.actionCardSubtitle}>Severity Timeline</Text>
@@ -138,8 +148,8 @@ const Report = () => {
                             onPress={() => router.push('/info')}
                             activeOpacity={0.8}
                         >
-                            <View style={[styles.actionIconCircle, { backgroundColor: '#FDEDEC' }]}>
-                                <Ionicons name="book" size={26} color="#e05c5c" />
+                            <View style={[styles.actionIconCircle, { backgroundColor: '#6386BA' }]}>
+                                <Image source={Document} style = {{width: 32, height: 32}} resizeMode="contain" />
                             </View>
                             <Text style={styles.actionCardTitle}>Care Guide</Text>
                             <Text style={styles.actionCardSubtitle}>Sore Hocks Info</Text>
@@ -148,23 +158,25 @@ const Report = () => {
 
                     {/* 4. Navigation Buttons */}
                     <View style={styles.buttonContainer}>
+                        
                         {scan?.rabbit_id && (
                             <TouchableOpacity
                                 style={styles.secondaryButton}
                                 onPress={() => router.replace({ pathname: '/RabbitDetail', params: { id: scan.rabbit_id } })}
                                 activeOpacity={0.8}
                             >
-                                <Ionicons name="arrow-back" size={18} color="#e05c5c" style={{ marginRight: 8 }} />
+                                <Image source={Back} style = {{width: 24, height: 24, marginRight: 6}} resizeMode="contain"/>
                                 <Text style={styles.secondaryButtonText}>Back to Rabbit Profile</Text>
                             </TouchableOpacity>
                         )}
 
+                        
                         <TouchableOpacity
                             style={styles.primaryButton}
                             onPress={() => router.replace('/')}
                             activeOpacity={0.8}
                         >
-                            <Ionicons name="home-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
+                            <Image source={Bunny} style = {{width: 26, height: 26, marginRight: 6}} resizeMode="contain"/>
                             <Text style={styles.primaryButtonText}>Home Dashboard</Text>
                         </TouchableOpacity>
                     </View>
@@ -203,7 +215,7 @@ const styles = StyleSheet.create({
     placeholderImage: {
         width: '100%',
         height: '100%',
-        backgroundColor: '#FFE5E5',
+        backgroundColor: '#A7B9D4',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -295,7 +307,7 @@ const styles = StyleSheet.create({
     },
     divider: {
         height: 1,
-        backgroundColor: '#EAEAEA',
+        backgroundColor: '#A7B9D4',
         marginVertical: 14,
     },
     sectionHeaderRow: {
@@ -319,21 +331,21 @@ const styles = StyleSheet.create({
     surveillanceBox: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FFF5F5',
+        backgroundColor: '#A7B9D4',
         borderRadius: 14,
         padding: 14,
         borderWidth: 1,
-        borderColor: '#FADBD8',
+        borderColor: '#1B4079',
     },
     surveillanceLabel: {
         fontSize: 12,
-        color: '#7F8C8D',
+        color: '#1B4079',
         fontWeight: '500',
     },
     surveillanceValue: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#e05c5c',
+        color: '#1B4079',
         marginTop: 2,
     },
     actionCardsRow: {
@@ -378,7 +390,7 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     primaryButton: {
-        backgroundColor: '#e05c5c',
+        backgroundColor: '#1B4079',
         borderRadius: 14,
         paddingVertical: 14,
         flexDirection: 'row',
@@ -398,7 +410,7 @@ const styles = StyleSheet.create({
     secondaryButton: {
         backgroundColor: 'rgba(255, 255, 255, 0.94)',
         borderWidth: 1.5,
-        borderColor: '#e05c5c',
+        borderColor: '#4D7C8A',
         borderRadius: 14,
         paddingVertical: 13,
         flexDirection: 'row',
@@ -406,7 +418,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     secondaryButtonText: {
-        color: '#e05c5c',
+        color: '#4D7C8A',
         fontSize: 15,
         fontWeight: 'bold',
     },

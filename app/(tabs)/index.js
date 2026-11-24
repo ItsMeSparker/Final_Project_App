@@ -9,6 +9,7 @@ import axios from 'axios';
 
 const background = require('../../assets/images/Background_3.png');
 const bunnyLogo = require('../../assets/images/Bunny_Logo.png');
+const Paw = require('../../assets/images/paw.png');
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const Rabbits = () => {
@@ -81,7 +82,7 @@ const Rabbits = () => {
                 </View>
 
                 <View style={styles.subtitlePill}>
-                    <Ionicons name="paw" size={12} color="#FFE5E5" style={{ marginRight: 6 }} />
+                    <Image source={Paw} style={{height: 20, width: 20, marginRight: 6}} resizeMode="contain" />
                     <Text style={styles.subtitleText}>PAW HEALTH COMPANION</Text>
                 </View>
             </View>

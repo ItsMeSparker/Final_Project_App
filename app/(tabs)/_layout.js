@@ -1,12 +1,17 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { Image }  from 'react-native';
+
+const Paw = require('../../assets/images/paw.png');
+const Profile = require('../../assets/images/profile.png');
+const Document = require('../../assets/images/document.png');
 
 export default function TabLayout() {
     return (
         <Tabs
             screenOptions={{
                 headerShown: false,
-                tabBarActiveTintColor: '#e05c5c',
+                tabBarActiveTintColor: '#1B4079',
                 tabBarInactiveTintColor: '#888',
                 tabBarStyle: {
                     backgroundColor: '#ffffff',
@@ -24,18 +29,7 @@ export default function TabLayout() {
                 options={{
                     title: 'Rabbits',
                     tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="paw" size={size} color={color} />
-                    ),
-                }}
-            />
-
-            {/* 3. Weekly Report */}
-            <Tabs.Screen
-                name="weekly"
-                options={{
-                    title: 'Weekly',
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="calendar-outline" size={size} color={color} />
+                        <Image source={Paw} style = {{width: 32, height: 32}} resizeMode="contain"/>
                     ),
                 }}
             />
@@ -46,10 +40,24 @@ export default function TabLayout() {
                 options={{
                     title: 'Info',
                     tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="information-circle-outline" size={size} color={color} />
+                        <Image source={Document} style = {{width: 32, height: 32}} resizeMode="contain"/>
+                    ),
+                }}  
+            />
+            
+            {/* 3. Weekly Report */}
+            <Tabs.Screen
+                name="Profile"
+                options={{
+                    title: 'Profile',
+                    tabBarIcon: ({ color, size }) => (
+                        <Image source={Profile} style = {{width: 24, height: 24}} resizeMode="contain"/>
                     ),
                 }}
             />
+
+            
+            
         </Tabs>
     );
 }

@@ -8,6 +8,7 @@ import {
     StyleSheet,
     ImageBackground,
     TouchableOpacity,
+    Image,
     ScrollView,
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
@@ -15,6 +16,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../../context/AuthContext';
 
 const background = require('../../assets/images/Background_1.png');
+const ProfilePic = require('../../assets/images/profile.png');
+const Pencil = require('../../assets/images/pencil.png');
+const Person = require('../../assets/images/person.png');
+const Mail = require('../../assets/images/mail.png');
+const Lock = require('../../assets/images/lock.png');
+const LogoutIcon = require('../../assets/images/logout.png');
 
 const Profile = () => {
     const router = useRouter();
@@ -113,7 +120,7 @@ const Profile = () => {
                 >
                     {/* Profile Avatar */}
                     <View style={styles.avatarContainer}>
-                        <Ionicons name="person-circle-outline" size={100} color="white" />
+                        <Image source={ProfilePic} style = {{width: 100, height: 100}} resizeMode="center" />
                     </View>
 
                     {/* User Info Card */}
@@ -121,7 +128,7 @@ const Profile = () => {
 
                         {/* Username */}
                         <View style={styles.infoRow}>
-                            <Ionicons name="person-outline" size={22} color="#555" />
+                            <Image source={Person} style = {{width: 24, height: 24}} resizeMode="contain" />
                             <View style={[styles.infoText, { flex: 1 }]}>
                                 <Text style={styles.label}>Username</Text>
                                 {editing ? (
@@ -159,14 +166,14 @@ const Profile = () => {
                             </View>
                             {!editing && (
                                 <TouchableOpacity onPress={handleStartEdit} style={styles.editTrigger}>
-                                    <Ionicons name="create-outline" size={22} color="#e05c5c" />
+                                    <Image source={Pencil} style = {{width: 24, height: 24}} resizeMode="contain" />
                                 </TouchableOpacity>
                             )}
                         </View>
 
                         {/* Email */}
                         <View style={styles.infoRow}>
-                            <Ionicons name="mail-outline" size={22} color="#555" />
+                            <Image source={Mail} style = {{width: 24, height: 24}} resizeMode="contain" />
                             <View style={styles.infoText}>
                                 <Text style={styles.label}>Email</Text>
                                 <Text style={styles.value}>{user?.email ?? 'N/A'}</Text>
@@ -175,7 +182,7 @@ const Profile = () => {
 
                         {/* Password */}
                         <View style={[styles.infoRow, { borderBottomWidth: 0, alignItems: editingPassword ? 'flex-start' : 'center' }]}>
-                            <Ionicons name="lock-closed-outline" size={22} color="#555" style={editingPassword ? { marginTop: 4 } : undefined} />
+                            <Image source={Lock} style = {{width: 24, height: 24}} resizeMode="contain" /> 
                             <View style={[styles.infoText, { flex: 1 }]}>
                                 <Text style={styles.label}>Password</Text>
                                 {editingPassword ? (
@@ -234,7 +241,7 @@ const Profile = () => {
                             </View>
                             {!editingPassword && (
                                 <TouchableOpacity onPress={handleStartEditPassword} style={styles.editTrigger}>
-                                    <Ionicons name="create-outline" size={22} color="#e05c5c" />
+                                    <Image source={Pencil} style = {{width: 24, height: 24}} resizeMode="contain" />
                                 </TouchableOpacity>
                             )}
                         </View>
@@ -243,7 +250,7 @@ const Profile = () => {
 
                     {/* Logout Button */}
                     <TouchableOpacity onPress={() => logout()} style={styles.logoutButton}>
-                        <Ionicons name="power" size={24} color="white" />
+                        <Image source={LogoutIcon} style = {{width: 24, height: 24, marginRight: 8}} resizeMode="contain" /> 
                         <Text style={styles.logoutText}>Logout</Text>
                     </TouchableOpacity>
                 </ScrollView>
@@ -356,7 +363,7 @@ const styles = StyleSheet.create({
     },
     logoutButton: {
         marginTop: 30,
-        backgroundColor: '#e05c5c',
+        backgroundColor: '#4D7C8A',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',

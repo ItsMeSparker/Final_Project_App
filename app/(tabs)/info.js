@@ -60,6 +60,8 @@ const translations = {
   }
 };
 
+const Paw = require('../../assets/images/paw.png');
+
 const GradeCard = ({ title, desc, action, color, icon }) => (
     <View style={[styles.card, { borderLeftColor: color, borderLeftWidth: 5 }]}>
         <View style={styles.cardHeader}>
@@ -88,7 +90,7 @@ const Information = () => {
                     
                     headerRight: () => (
                         <TouchableOpacity onPress={toggleLang} style={styles.langBtn}>
-                            <Ionicons name="language" size={20} color="#e05c5c" />
+                            <Ionicons name="language" size={20} color="#1B4079" />
                             <Text style={styles.langText}>{lang === 'en' ? 'EN / ไทย' : 'ไทย / EN'}</Text>
                         </TouchableOpacity>
                     ),
@@ -98,7 +100,7 @@ const Information = () => {
             <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
                 <View style={styles.headerContainer}>
                     <View style={styles.iconCircle}>
-                        <Ionicons name="paw" size={36} color="#e05c5c" />
+                        <Image source={Paw} style = {{width: 80, height: 80}} resizeMode="center" />
                     </View>
                     <Text style={styles.mainTitle}>{t.title}</Text>
                     <Text style={styles.description}>{t.desc}</Text>
@@ -192,7 +194,7 @@ const styles = StyleSheet.create({
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: '#FFE5E5',
+        backgroundColor: '#A7B9D4',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 15,

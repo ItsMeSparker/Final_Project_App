@@ -8,6 +8,14 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { AuthContext } from '../context/AuthContext';
 
 const background = require('../assets/images/Background_1.png');
+const CameraIcon = require('../assets/images/Camera_Pixel.png');
+const Yale_Button = require('../assets/images/yale.png');
+const Document = require('../assets/images/document.png');
+const Pencil = require('../assets/images/pencil.png');
+const Paw = require('../assets/images/paw.png');
+const Calandar = require('../assets/images/Calendar_Pixel.png'); 
+const Bunny = require('../assets/images/Bunny_Logo.png');
+
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const RabbitDetail = () => {
@@ -200,15 +208,11 @@ const RabbitDetail = () => {
                                 <Image source={{ uri: `${BASE_URL}${rabbit.image_url}` }} style={styles.avatarImage} />
                             ) : (
                                 <View style={styles.avatarPlaceholder}>
-                                    <Ionicons name="paw" size={45} color="#e05c5c" />
+                                    <Image source={Bunny} style = {{width: 48, height: 48}} resizeMode="center" />
                                 </View>
                             )}
                             <View style={styles.cameraIconBadge}>
-                                {uploading ? (
-                                    <ActivityIndicator size="small" color="#fff" />
-                                ) : (
-                                    <Ionicons name="camera" size={16} color="#fff" />
-                                )}
+                                <Image source={CameraIcon} style = {styles.cameraBadgeIcon} resizeMode="contain" />
                             </View>
                         </TouchableOpacity>
                         <Text style={styles.avatarHint}>Tap photo to change</Text>
@@ -258,8 +262,8 @@ const RabbitDetail = () => {
                     ) : (
                         <View style={{ gap: 12, marginTop: 20 }}>
 
-                            <TouchableOpacity style={[styles.button, { backgroundColor: '#e05c5c' }]} onPress={() => setEditing(true)}>
-                                <Ionicons name="pencil-outline" size={18} color="#fff" />
+                            <TouchableOpacity style={[styles.button, { backgroundColor: '#1B4079' }]} onPress={() => setEditing(true)}>
+                                <Image source={Pencil} style = {styles.buttonIcon} resizeMode="contain" />
                                 <Text style={[styles.buttonText, { marginLeft: 8 }]}>Edit Rabbit</Text>
                             </TouchableOpacity>
                         </View>
@@ -270,7 +274,7 @@ const RabbitDetail = () => {
                 <View style={[styles.card, { marginTop: 18, marginBottom: 40 }]}>
                     <View style={styles.historyHeader}>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Ionicons name="fitness-outline" size={22} color="#e05c5c" style={{ marginRight: 8 }} />
+                            <Image source={Paw} style = {{width: 24, height: 24, margin: 8}} resizeMode="center" />
                             <Text style={styles.historyTitle}>Scan Records</Text>
                         </View>
                         <View style={styles.scanCountBadge}>
@@ -279,10 +283,10 @@ const RabbitDetail = () => {
                     </View>
 
                     {scansLoading ? (
-                        <ActivityIndicator color="#e05c5c" style={{ padding: 20 }} />
+                        <ActivityIndicator color="#A7B9D4" style={{ padding: 20 }} />
                     ) : scans.length === 0 ? (
                         <View style={styles.emptyScansContainer}>
-                            <Ionicons name="document-text-outline" size={42} color="#ccc" />
+                            <Image source={Document} style = {styles.emptyDocumentIcon} resizeMode="contain" />
                             <Text style={styles.emptyScansText}>No paw scans recorded yet</Text>
                             <Text style={styles.emptyScansSubText}>Tap Quick Scan above to record the first check.</Text>
                         </View>
@@ -318,7 +322,7 @@ const RabbitDetail = () => {
                                             <Image source={{ uri: `${BASE_URL}${scan.image_url}` }} style={styles.scanThumb} />
                                         ) : (
                                             <View style={styles.scanThumbPlaceholder}>
-                                                <Ionicons name="paw" size={20} color="#e05c5c" />
+                                                <Image source={Paw} style = {{width: 20, height: 20}} resizeMode="center" />
                                             </View>
                                         )}
 
@@ -338,14 +342,14 @@ const RabbitDetail = () => {
                         </View>
                     )}
                     <TouchableOpacity
-                        style={[styles.button, { backgroundColor: '#e05c5c', marginTop: 14, marginBottom: 10 }]}
+                        style={[styles.button, { backgroundColor: '#1B4079', marginTop: 14, marginBottom: 10 }]}
                         onPress={() => router.push({ pathname: '/SeverityTracking', params: { rabbitId: id, rabbitName: rabbit?.name } })}
                     >
-                        <Ionicons name="analytics-outline" size={22} color="#fff" />
+                        <Image source={Calandar} style = {styles.buttonIcon} resizeMode="contain" />
                         <Text style={[styles.buttonText, { marginLeft: 8 }]}>Severity Timeline</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.button, { backgroundColor: '#4A90E2' }]} onPress={() => router.push({ pathname: '/scan', params: { rabbitId: id } })}>
-                        <Ionicons name="scan-circle-outline" size={22} color="#fff" />
+                    <TouchableOpacity style={[styles.button, { backgroundColor: '#4D7C8A' }]} onPress={() => router.push({ pathname: '/scan', params: { rabbitId: id } })}>
+                        <Image source={CameraIcon} style = {styles.buttonIcon} resizeMode="contain" />
                         <Text style={[styles.buttonText, { marginLeft: 8 }]}>Quick Scan</Text>
                     </TouchableOpacity>
                 </View>
@@ -361,13 +365,13 @@ const styles = StyleSheet.create({
     avatarSection: { alignItems: 'center', marginBottom: 15 },
     avatarWrapper: { position: 'relative', width: 96, height: 96, borderRadius: 48, justifyContent: 'center', alignItems: 'center' },
     avatarImage: { width: 96, height: 96, borderRadius: 48 },
-    avatarPlaceholder: { width: 96, height: 96, borderRadius: 48, backgroundColor: '#ffeaea', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#e05c5c' },
-    cameraIconBadge: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#e05c5c', width: 28, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fff' },
+    avatarPlaceholder: { width: 96, height: 96, borderRadius: 48, backgroundColor: '#A7B9D4', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#e05c5c' },
+    cameraIconBadge: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#1B4079', width: 28, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fff' },
     avatarHint: { fontSize: 12, color: '#888', marginTop: 6 },
     label: { fontSize: 14, fontWeight: '600', color: '#555', marginBottom: 6, marginTop: 14 },
-    input: { backgroundColor: '#f5f5f5', borderRadius: 10, padding: 12, fontSize: 16, borderWidth: 1, borderColor: '#ddd' },
+    input: { backgroundColor: '#A7B9D4', borderRadius: 10, padding: 12, fontSize: 16, borderWidth: 1, borderColor: '#ddd' },
     datePickerButton: {
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#A7B9D4',
         borderRadius: 10,
         padding: 14,
         borderWidth: 1,
@@ -377,6 +381,10 @@ const styles = StyleSheet.create({
     dateText: {
         fontSize: 16,
         color: '#333',
+    },
+    cameraBadgeIcon: {
+        width: 18,
+        height: 18,
     },
     placeholderText: {
         color: '#aaa',
@@ -391,7 +399,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingBottom: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
+        borderBottomColor: '#A7B9D4',
         marginBottom: 8,
     },
     historyTitle: {
@@ -400,7 +408,7 @@ const styles = StyleSheet.create({
         color: '#2C3E50',
     },
     scanCountBadge: {
-        backgroundColor: '#ffeaea',
+        backgroundColor: '#A7B9D4',
         paddingHorizontal: 10,
         paddingVertical: 3,
         borderRadius: 12,
@@ -408,7 +416,7 @@ const styles = StyleSheet.create({
     scanCountText: {
         fontSize: 12,
         fontWeight: 'bold',
-        color: '#e05c5c',
+        color: '#1B4079',
     },
     emptyScansContainer: {
         alignItems: 'center',
@@ -426,6 +434,11 @@ const styles = StyleSheet.create({
         marginTop: 4,
         textAlign: 'center',
     },
+    emptyDocumentIcon:{
+        width: 64,
+        height: 64,
+        marginBottom: 8,
+    },
     scansList: {
         marginTop: 4,
     },
@@ -434,7 +447,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#f5f5f5',
+        borderBottomColor: '#A7B9D4',
     },
     scanThumb: {
         width: 48,
@@ -445,7 +458,7 @@ const styles = StyleSheet.create({
         width: 48,
         height: 48,
         borderRadius: 12,
-        backgroundColor: '#ffeaea',
+        backgroundColor: '#A7B9D4',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -473,6 +486,10 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: 'bold',
     },
+    buttonIcon: {
+        width: 24,
+        height: 24,
+    }
 });
 
 export default RabbitDetail;

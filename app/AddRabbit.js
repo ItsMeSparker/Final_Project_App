@@ -9,6 +9,8 @@ import { AuthContext } from '../context/AuthContext';
 
 const background = require('../assets/images/Background_1.png');
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+const CameraIcon = require('../assets/images/Camera_Pixel.png');
+const Bunny = require('../assets/images/Bunny_Logo.png');
 
 const AddRabbit = () => {
     const router = useRouter();
@@ -73,7 +75,7 @@ const AddRabbit = () => {
             if (imageUri) {
                 const formData = new FormData();
                 const filename = imageUri.split('/').pop() || 'photo.jpg';
-                const match = /\.(\w+)$/.exec(filename);
+                const match = /\.([a-zA-Z0-9]+)$/.exec(filename);
                 const type = match ? `image/${match[1]}` : 'image/jpeg';
 
                 formData.append('file', {
@@ -90,7 +92,7 @@ const AddRabbit = () => {
                 });
             }
 
-            Alert.alert("Success! 🐇", `${name} has been added!`, [
+            Alert.alert("Success!", `${name} has been added!`, [
                 { text: "OK", onPress: () => router.back() }
             ]);
         } catch (error) {
@@ -123,7 +125,7 @@ const AddRabbit = () => {
                                 <Image source={{ uri: imageUri }} style={styles.avatarImage} />
                             ) : (
                                 <View style={styles.avatarPlaceholder}>
-                                    <Ionicons name="camera-outline" size={38} color="#e05c5c" />
+                                    <Image source={CameraIcon} style = {{width: 38, height: 38}} resizeMode="contain" />
                                 </View>
                             )}
                             <View style={styles.cameraIconBadge}>
@@ -136,7 +138,7 @@ const AddRabbit = () => {
                             </Text>
                             {imageUri && (
                                 <TouchableOpacity onPress={() => setImageUri(null)} style={{ marginLeft: 8 }}>
-                                    <Text style={{ fontSize: 12, color: '#e05c5c', fontWeight: 'bold' }}>Remove</Text>
+                                    <Text style={{ fontSize: 12, color: '#1B4079', fontWeight: 'bold' }}>Remove</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
@@ -181,10 +183,18 @@ const AddRabbit = () => {
                     )}
 
                     <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={loading}>
-                        {loading
-                            ? <ActivityIndicator color="#fff" />
-                            : <Text style={styles.submitText}>Add Rabbit 🐇</Text>
-                        }
+                        {loading ? (
+                            <ActivityIndicator color="#fff" />
+                        ) : (
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Text style={styles.submitText}>Add Rabbit</Text>
+                                <Image
+                                    source={Bunny}
+                                    style={{ width: 32, height: 32, marginLeft: 8 }}
+                                    resizeMode="contain"
+                                />
+                            </View>
+                        )}
                     </TouchableOpacity>
                 </View>
             </ScrollView>
@@ -198,8 +208,8 @@ const styles = StyleSheet.create({
     avatarSection: { alignItems: 'center', marginBottom: 15 },
     avatarWrapper: { position: 'relative', width: 96, height: 96, borderRadius: 48, justifyContent: 'center', alignItems: 'center' },
     avatarImage: { width: 96, height: 96, borderRadius: 48 },
-    avatarPlaceholder: { width: 96, height: 96, borderRadius: 48, backgroundColor: '#ffeaea', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#e05c5c', borderStyle: 'dashed' },
-    cameraIconBadge: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#e05c5c', width: 28, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fff' },
+    avatarPlaceholder: { width: 96, height: 96, borderRadius: 48, backgroundColor: '#A7B9D4', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#1B4079', borderStyle: 'dashed' },
+    cameraIconBadge: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#1B4079', width: 28, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fff' },
     avatarHint: { fontSize: 13, color: '#666', fontWeight: '500' },
     label: { fontSize: 14, fontWeight: '600', color: '#555', marginBottom: 6, marginTop: 14 },
     input: {
@@ -226,7 +236,7 @@ const styles = StyleSheet.create({
         color: '#aaa',
     },
     submitButton: {
-        backgroundColor: '#e05c5c',
+        backgroundColor: '#1B4079',
         borderRadius: 12,
         padding: 15,
         alignItems: 'center',

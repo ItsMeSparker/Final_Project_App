@@ -18,6 +18,8 @@ import { AuthContext } from '../context/AuthContext';
 
 const background = require('../assets/images/Background_1.png');
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+const Paw = require('../assets/images/paw.png');
+const CameraIcon = require('../assets/images/Camera_Pixel.png');
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const GRADE_CONFIG = {
@@ -116,7 +118,7 @@ const LimbTimelineCard = ({ limbKey, limbTitle, scans, onSelectReport, onScanNow
             <View style={styles.cardHeader}>
                 <View style={styles.limbTitleRow}>
                     <View style={styles.pawIconBadge}>
-                        <Ionicons name="paw" size={18} color="#e05c5c" />
+                        <Image source={Paw} style = {{width: 24, height: 24}} resizeMode="contain"/>
                     </View>
                     <View>
                         <Text style={styles.cardTitle}>{limbTitle}</Text>
@@ -142,7 +144,7 @@ const LimbTimelineCard = ({ limbKey, limbTitle, scans, onSelectReport, onScanNow
                         Record paw scans to track pododermatitis severity grades over time.
                     </Text>
                     <TouchableOpacity style={styles.scanEmptyBtn} onPress={onScanNow} activeOpacity={0.8}>
-                        <Ionicons name="camera-outline" size={16} color="#fff" style={{ marginRight: 6 }} />
+                        <Image source={CameraIcon} style = {{width: 24, height: 24, marginRight: 8}} resizeMode="contain" />
                         <Text style={styles.scanEmptyBtnText}>Scan Now</Text>
                     </TouchableOpacity>
                 </View>
@@ -304,7 +306,7 @@ const LimbTimelineCard = ({ limbKey, limbTitle, scans, onSelectReport, onScanNow
                                 />
                             ) : (
                                 <View style={styles.selectedThumbPlaceholder}>
-                                    <Ionicons name="paw" size={20} color="#e05c5c" />
+                                    <Image source={Paw} style = {{width: 20, height: 20}} resizeMode="contain"/>
                                 </View>
                             )}
 
@@ -336,7 +338,7 @@ const LimbTimelineCard = ({ limbKey, limbTitle, scans, onSelectReport, onScanNow
 
                             <View style={styles.viewReportBtn}>
                                 <Text style={styles.viewReportText}>Report</Text>
-                                <Ionicons name="chevron-forward" size={14} color="#e05c5c" />
+                                <Ionicons name="chevron-forward" size={14} color="#1B4079" />
                             </View>
                         </TouchableOpacity>
                     )}
@@ -542,7 +544,7 @@ const styles = StyleSheet.create({
         color: '#fff',
     },
     filterTabTextActive: {
-        color: '#e05c5c',
+        color: '#A7B9D4',
         fontWeight: 'bold',
     },
     legendCard: {
@@ -611,7 +613,7 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 18,
-        backgroundColor: '#FFEAEA',
+        backgroundColor: '#A7B9D4',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 10,
@@ -682,7 +684,7 @@ const styles = StyleSheet.create({
     lineSegment: {
         position: 'absolute',
         height: 3,
-        backgroundColor: '#e05c5c',
+        backgroundColor: '#A7B9D4',
         borderRadius: 2,
         opacity: 0.75,
     },
@@ -728,7 +730,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     xAxisDateTextSelected: {
-        color: '#e05c5c',
+        color: '#1B4079',
         fontWeight: 'bold',
     },
     xAxisTimeText: {
@@ -750,12 +752,12 @@ const styles = StyleSheet.create({
     selectedScanCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FFF8F8',
+        backgroundColor: '#A7B9D4',
         borderRadius: 14,
         padding: 10,
         marginTop: 12,
         borderWidth: 1,
-        borderColor: '#FADBD8',
+        borderColor: '#1B4079',
     },
     selectedThumb: {
         width: 44,
@@ -766,7 +768,7 @@ const styles = StyleSheet.create({
         width: 44,
         height: 44,
         borderRadius: 10,
-        backgroundColor: '#FFEAEA',
+        backgroundColor: '#A7B9D4',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -799,7 +801,7 @@ const styles = StyleSheet.create({
     viewReportText: {
         fontSize: 12,
         fontWeight: 'bold',
-        color: '#e05c5c',
+        color: '#1B4079',
         marginRight: 2,
     },
     emptyContainer: {
@@ -822,7 +824,7 @@ const styles = StyleSheet.create({
     scanEmptyBtn: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#4A90E2',
+        backgroundColor: '#1B4079',
         paddingHorizontal: 14,
         paddingVertical: 8,
         borderRadius: 12,
