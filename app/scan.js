@@ -681,7 +681,7 @@ export default function CameraScreen() {
             <Text style={styles.buttonText}>Choose Another</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: '#e05c5c' }, !photoSize && { opacity: 0.65 }]}
+            style={[styles.actionButton, { backgroundColor: '#1b4079' }, !photoSize && { opacity: 0.65 }]}
             onPress={handleApplyCrop}
             disabled={!photoSize}
           >
